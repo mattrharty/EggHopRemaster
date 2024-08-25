@@ -11,6 +11,7 @@ using SFB;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
 using UnityEngine.U2D;
+using spritePaths;
 
 public class editorController : MonoBehaviour
 {
@@ -79,6 +80,8 @@ public class editorController : MonoBehaviour
     public  List<Sprite> w1ColSingle;
     Dictionary<string, List<Sprite>> w1Columns = new Dictionary<string, List<Sprite>>();
 
+    w1OneWay oneWays;
+
     public TMP_Text versionDis;
     string loadPath;
     public GameObject[] otherObjects;
@@ -138,6 +141,8 @@ public class editorController : MonoBehaviour
         gridReload();
 
         versionDis.text = "Egg Hop Level Editor " + Application.version;
+
+        oneWays = this.GetComponent<w1OneWay>();
     }
 
     void hotkey(Button toolButton){
@@ -491,7 +496,7 @@ public class editorController : MonoBehaviour
 
         if(leftClick.IsPressed() && EventSystem.current.currentSelectedGameObject == null){
             if (placeMode == (int)mode.single){
-                if(placeSelected == (int)mode.block && tileCursor.activeSelf){
+                if(placeSelected != (int)mode.erase && placeSelected != (int)mode.spawn && placeSelected != (int)mode.button && placeSelected != (int)mode.door && tileCursor.activeSelf){
                     Place(mousePos[0], mousePos[1], true);
                     reloadBlocks();
                 } else if(placeSelected == (int)mode.erase){
@@ -670,30 +675,51 @@ public class editorController : MonoBehaviour
     //Places a block
     void Place(int x, int y, bool playerPlaced){
         
-        if (currentLvl.checkTile(x, y) && playerPlaced){
+        if(currentLvl.checkTile(x, y) && playerPlaced){
             return;
         }
-        int num = Mathf.RoundToInt((((blocks.Length - 1) / 2) * Mathf.Sin((seed * 928.359f / 69385) * (seed * (x + 258) * (y + 2)))) + (blocks.Length - 1) / 2);
-        //tileData[x, y] = 0;
-        //addBlock(blockType.block, new coordinate2D (x, y), 0, num);
+
+        
+
         coordinate2D newCoord = new coordinate2D (x, y);
         if(!currentLvl.occupiedTiles.Contains(newCoord)){
             currentLvl.occupiedTiles.Add(newCoord);
-            currentLvl.blocks.Add(newCoord, new block (blockType.block, newCoord, 0, num, false));
         }
         
         GameObject newBlock = Instantiate(tilePrefab, new Vector3 (x, y, 0), new Quaternion());
-        try{
-            newBlock.GetComponent<SpriteRenderer>().sprite = blocks[num];
-        } catch {
-            //Debug.Log(num);
+
+        if(placeSelected == (int)mode.block){
+            placeBlock(x, y, newBlock);
+        } else if (placeSelected == (int)mode.platform){
+            placePlatform(x, y, newBlock);
         }
+
         newBlock.GetComponent<SpriteRenderer>().sortingOrder = -1;
         newBlock.GetComponent<SpriteRenderer>().color = Color.white;
         newBlock.gameObject.GetComponent<SpriteRenderer>().material = litMat;
         newBlock.transform.localScale = new Vector3 (1, 1, 1);
-        newBlock.name = "Placed Block";
         placedBlocks[x, y] = newBlock;
+    }
+
+    void placeBlock(int x, int y, GameObject newBlock){
+        int num = Mathf.RoundToInt((((blocks.Length - 1) / 2) * Mathf.Sin((seed * 928.359f / 69385) * (seed * (x + 258) * (y + 2)))) + (blocks.Length - 1) / 2);
+
+        coordinate2D newCoord = new coordinate2D (x, y);
+        currentLvl.blocks.Add(newCoord, new block (blockType.block, newCoord, 0, num, false));
+
+        newBlock.GetComponent<SpriteRenderer>().sprite = blocks[num];
+        newBlock.name = "Placed Block";
+    }
+
+    void placePlatform(int x, int y, GameObject newPlatform){
+        int n = Math.Abs((Mathf.RoundToInt(x / (float)Math.PI) * Mathf.RoundToInt(seed / 17)) + (Mathf.RoundToInt(y * (float)Math.PI) * Mathf.RoundToInt(seed / 19)));
+        int index = n % 2;
+
+        coordinate2D newCoord = new coordinate2D (x, y);
+        currentLvl.blocks.Add(newCoord, new block (blockType.platform, newCoord, 0, index, false));
+
+        newPlatform.GetComponent<SpriteRenderer>().sprite = oneWays.Middle[index];
+        newPlatform.name = "Placed Platform";
     }
 
     void erase(int x, int y){ 
@@ -809,7 +835,7 @@ public class editorController : MonoBehaviour
     }
 
     public void selectTool(int select){
-        Debug.Log(select);
+        //Debug.Log(select);
         placeSelected = select;
 
         if (select == (int)mode.spawn || select == (int)mode.button || select == (int)mode.door){
@@ -946,7 +972,7 @@ public class editorController : MonoBehaviour
                             if(topRoot && botRoot){
                                 int n = Math.Abs((Mathf.RoundToInt(x / (float)Math.PI) * Mathf.RoundToInt(seed / 17)) + (Mathf.RoundToInt(y * (float)Math.PI) * Mathf.RoundToInt(seed / 19)));
                                 int index = n % w1Columns["single"].Count;
-                                Debug.Log(index);
+                                //Debug.Log(index);
                                 currentLvl.getTile(x, y).blockVer = index;
                                 placedBlocks[x, y].GetComponent<SpriteRenderer>().sprite = w1Columns["single"][currentLvl.getTile(x, y).blockVer];
                                 column = true;
@@ -1034,7 +1060,56 @@ public class editorController : MonoBehaviour
                         }
                     }
                 }
-            }}
+            }else if (currentLvl.getTile(x, y) != null){
+            if(currentLvl.blocks[new coordinate2D (x, y)].type == blockType.platform){
+                SpriteRenderer sr = placedBlocks[x, y].GetComponent<SpriteRenderer>();
+                sr.sprite = oneWays.Middle[currentLvl.getTile(x, y).blockVer];
+
+                if(currentLvl.getTile(x + 1, y) == null && currentLvl.getTile(x - 1, y) != null){
+                    if(currentLvl.getTile(x - 1, y).type == blockType.platform){
+                        sr.sprite = oneWays.endRight[currentLvl.getTile(x, y).blockVer];
+                    }
+                } else {
+                    if(currentLvl.getTile(x - 1, y) != null){
+                        if(currentLvl.getTile(x - 1, y).type == blockType.platform && (currentLvl.getTile(x + 1, y).type == blockType.button || currentLvl.getTile(x + 1, y).type == blockType.door || currentLvl.getTile(x + 1, y).type == blockType.spawn)){
+                            sr.sprite = oneWays.endRight[currentLvl.getTile(x, y).blockVer];
+                        }
+                    }
+                }
+                if(currentLvl.getTile(x - 1, y) == null && currentLvl.getTile(x + 1, y) != null){
+                    if(currentLvl.getTile(x + 1, y).type == blockType.platform){
+                        sr.sprite = oneWays.endLeft[currentLvl.getTile(x, y).blockVer];
+                    }
+                } else {
+                    if(currentLvl.getTile(x + 1, y) != null){
+                        if(currentLvl.getTile(x + 1, y).type == blockType.platform && (currentLvl.getTile(x - 1, y).type == blockType.button || currentLvl.getTile(x - 1, y).type == blockType.door || currentLvl.getTile(x - 1, y).type == blockType.spawn)){
+                            sr.sprite = oneWays.endLeft[currentLvl.getTile(x, y).blockVer];
+                        }
+                    }
+                }
+
+                bool wallLeft = false;
+                if((checkTileOccupancy(x - 1, y) == 0 || x - 1 < 0) && (checkTileOccupancy(x - 2, y) == 0 || x - 2 < 0)){
+                    sr.sprite = oneWays.endRight[2];
+                    if(currentLvl.getTile(x + 1, y) != null){
+                        if(currentLvl.getTile(x + 1, y).type == blockType.platform){
+                            sr.sprite = oneWays.Middle[2];
+                        }
+                    }
+                    wallLeft = true;
+                }
+                if((checkTileOccupancy(x + 1, y) == 0 || x + 1 > size[0] - 1) && (checkTileOccupancy(x + 2, y) == 0 || x + 2 > size[0] - 1)){
+                    sr.sprite = oneWays.endLeft[2];
+                    if(currentLvl.getTile(x - 1, y) != null){
+                        if(currentLvl.getTile(x - 1, y).type == blockType.platform){
+                            sr.sprite = oneWays.Middle[3];
+                        }
+                    }
+                    if(wallLeft){
+                        sr.sprite = oneWays.Middle[4];
+                    }
+                }
+            }}}
         }
     }
 
