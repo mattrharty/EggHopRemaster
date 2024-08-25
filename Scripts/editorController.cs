@@ -382,6 +382,15 @@ public class editorController : MonoBehaviour
         StartCoroutine(OutputRoutine(url));
     }
 
+    bool placingOne(){
+        if(placeSelected == (int)mode.block ||
+            placeSelected == (int)mode.platform){
+                return true;
+        } else {
+            return false;
+        }
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -430,9 +439,9 @@ public class editorController : MonoBehaviour
                 tileCursor.GetComponent<SpriteRenderer>().sprite = cursorPics[0];
                 tileCursor.GetComponent<SpriteRenderer>().color = cursorColors[0];
             }
-            if(currentLvl.getTile(mousePos[0], mousePos[1]) != null && placeSelected == (int)mode.block || currentLvl.getTile(mousePos[0], mousePos[1]) == null && placeSelected == (int)mode.erase){
+            if(currentLvl.getTile(mousePos[0], mousePos[1]) != null && placingOne() || currentLvl.getTile(mousePos[0], mousePos[1]) == null && placeSelected == (int)mode.erase){
                 tileCursor.transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[0];
-            } else if(placeSelected < 2){
+            } else if(placingOne() || placeSelected == (int)mode.erase){
                 tileCursor.transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[1];
             } else if(new List<int> {(int)mode.spawn, (int)mode.button, (int)mode.door}.Contains(placeSelected)){
                 //Correctly colors the borders for placing spawn, button, or door
@@ -496,7 +505,7 @@ public class editorController : MonoBehaviour
 
         if(leftClick.IsPressed() && EventSystem.current.currentSelectedGameObject == null){
             if (placeMode == (int)mode.single){
-                if(placeSelected != (int)mode.erase && placeSelected != (int)mode.spawn && placeSelected != (int)mode.button && placeSelected != (int)mode.door && tileCursor.activeSelf){
+                if(placingOne() && tileCursor.activeSelf){
                     Place(mousePos[0], mousePos[1], true);
                     reloadBlocks();
                 } else if(placeSelected == (int)mode.erase){
@@ -712,8 +721,8 @@ public class editorController : MonoBehaviour
     }
 
     void placePlatform(int x, int y, GameObject newPlatform){
-        int n = Math.Abs((Mathf.RoundToInt(x / (float)Math.PI) * Mathf.RoundToInt(seed / 17)) + (Mathf.RoundToInt(y * (float)Math.PI) * Mathf.RoundToInt(seed / 19)));
-        int index = n % 2;
+        int n = Math.Abs((Mathf.RoundToInt(x / (float)Math.PI) * Mathf.RoundToInt(seed / 17)) + (Mathf.RoundToInt(y * (float)Math.PI) * Mathf.RoundToInt(seed / 19))) + x * y;
+        int index = Mathf.RoundToInt(n / 10) % 2;
 
         coordinate2D newCoord = new coordinate2D (x, y);
         currentLvl.blocks.Add(newCoord, new block (blockType.platform, newCoord, 0, index, false));
@@ -1062,6 +1071,10 @@ public class editorController : MonoBehaviour
                 }
             }else if (currentLvl.getTile(x, y) != null){
             if(currentLvl.blocks[new coordinate2D (x, y)].type == blockType.platform){
+                int n = Math.Abs((Mathf.RoundToInt(x / (float)Math.PI) * Mathf.RoundToInt(seed / 17)) + (Mathf.RoundToInt(y * (float)Math.PI) * Mathf.RoundToInt(seed / 19))) + x * y;
+                int index = Mathf.RoundToInt(n / 10) % 2;
+                currentLvl.getTile(x, y).blockVer = index;
+
                 SpriteRenderer sr = placedBlocks[x, y].GetComponent<SpriteRenderer>();
                 sr.sprite = oneWays.Middle[currentLvl.getTile(x, y).blockVer];
 
