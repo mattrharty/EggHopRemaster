@@ -9,4 +9,11 @@ using UnityEngine;
             public List<Sprite> Middle;
             public List<Sprite> endRight;
         }
+
+        public class w1Spikes : MonoBehaviour {
+            public List<Sprite> one;
+            public List<Sprite> two;
+            public List<Sprite> three;
+            public List<Sprite> four;
+        }
     }
