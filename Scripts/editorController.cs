@@ -82,6 +82,8 @@ public class editorController : MonoBehaviour
 
     w1OneWay oneWays;
 
+    int rotate = 0;
+
     public TMP_Text versionDis;
     string loadPath;
     public GameObject[] otherObjects;
@@ -90,6 +92,8 @@ public class editorController : MonoBehaviour
     1 -> Button
     2 -> Door 
     */
+
+    bool loadingLevel = false;
 
     // Start is called before the first frame update
     void Start()
@@ -108,6 +112,7 @@ public class editorController : MonoBehaviour
         camScript.bounds[1] = size[0];
         camScript.bounds[2] = 0;
         camScript.bounds[3] = 0;
+        currentLvl.size = size;
 
         buttons = GameObject.FindObjectsOfType<Button>();
 
@@ -384,7 +389,8 @@ public class editorController : MonoBehaviour
 
     bool placingOne(){
         if(placeSelected == (int)mode.block ||
-            placeSelected == (int)mode.platform){
+            placeSelected == (int)mode.platform ||
+            placeSelected == (int)mode.obstacle){
                 return true;
         } else {
             return false;
@@ -406,7 +412,7 @@ public class editorController : MonoBehaviour
         } else {
             tileCursor.gameObject.SetActive(true);
 
-            if(placeSelected < 2){
+            if(placingOne() || placeSelected == (int)mode.erase){
                 tileCursor.transform.GetChild(0).gameObject.SetActive(true);
                 tileCursor.transform.GetChild(1).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(2).gameObject.SetActive(false);
@@ -418,18 +424,21 @@ public class editorController : MonoBehaviour
                 tileCursor.transform.GetChild(2).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(3).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(4).gameObject.SetActive(true);
+                //tileCursor.transform.GetChild(5).gameObject.SetActive(false);
             }else if (placeSelected == (int)mode.button) {
                 tileCursor.transform.GetChild(0).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(1).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(2).gameObject.SetActive(true);
                 tileCursor.transform.GetChild(3).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(4).gameObject.SetActive(true);
+                //tileCursor.transform.GetChild(5).gameObject.SetActive(false);
             }else if (placeSelected == (int)mode.door) {
                 tileCursor.transform.GetChild(0).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(1).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(2).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(3).gameObject.SetActive(true);
                 tileCursor.transform.GetChild(4).gameObject.SetActive(true);
+                //tileCursor.transform.GetChild(5).gameObject.SetActive(false);
             }
 
             if(placeSelected != (int)mode.erase){
@@ -439,6 +448,7 @@ public class editorController : MonoBehaviour
                 tileCursor.GetComponent<SpriteRenderer>().sprite = cursorPics[0];
                 tileCursor.GetComponent<SpriteRenderer>().color = cursorColors[0];
             }
+
             if(currentLvl.getTile(mousePos[0], mousePos[1]) != null && placingOne() || currentLvl.getTile(mousePos[0], mousePos[1]) == null && placeSelected == (int)mode.erase){
                 tileCursor.transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[0];
             } else if(placingOne() || placeSelected == (int)mode.erase){
@@ -637,6 +647,7 @@ public class editorController : MonoBehaviour
             new ExtensionFilter("All files", "*")
         };
         string path = "";
+        currentLvl.size = size;
         #if !UNITY_WEBGL
         path = StandaloneFileBrowser.SaveFilePanel("Save custom level", "", saveName, extensionList);
         #endif
@@ -698,9 +709,11 @@ public class editorController : MonoBehaviour
         GameObject newBlock = Instantiate(tilePrefab, new Vector3 (x, y, 0), new Quaternion());
 
         if(placeSelected == (int)mode.block){
-            placeBlock(x, y, newBlock);
+            placeBlock(x, y, newBlock, playerPlaced);
         } else if (placeSelected == (int)mode.platform){
-            placePlatform(x, y, newBlock);
+            placePlatform(x, y, newBlock, playerPlaced);
+        } else if (placeSelected == (int)mode.obstacle){
+            placeDeath(x, y, newBlock, playerPlaced);
         }
 
         newBlock.GetComponent<SpriteRenderer>().sortingOrder = -1;
@@ -710,25 +723,38 @@ public class editorController : MonoBehaviour
         placedBlocks[x, y] = newBlock;
     }
 
-    void placeBlock(int x, int y, GameObject newBlock){
+    void placeBlock(int x, int y, GameObject newBlock, bool playerPlaced){
         int num = Mathf.RoundToInt((((blocks.Length - 1) / 2) * Mathf.Sin((seed * 928.359f / 69385) * (seed * (x + 258) * (y + 2)))) + (blocks.Length - 1) / 2);
 
         coordinate2D newCoord = new coordinate2D (x, y);
-        currentLvl.blocks.Add(newCoord, new block (blockType.block, newCoord, 0, num, false));
+        if(playerPlaced){
+            currentLvl.blocks.Add(newCoord, new block (blockType.block, newCoord, 0, num, false));
+        }
 
         newBlock.GetComponent<SpriteRenderer>().sprite = blocks[num];
         newBlock.name = "Placed Block";
     }
 
-    void placePlatform(int x, int y, GameObject newPlatform){
+    void placePlatform(int x, int y, GameObject newPlatform, bool playerPlaced){
         int n = Math.Abs((Mathf.RoundToInt(x / (float)Math.PI) * Mathf.RoundToInt(seed / 17)) + (Mathf.RoundToInt(y * (float)Math.PI) * Mathf.RoundToInt(seed / 19))) + x * y;
         int index = Mathf.RoundToInt(n / 10) % 2;
 
         coordinate2D newCoord = new coordinate2D (x, y);
-        currentLvl.blocks.Add(newCoord, new block (blockType.platform, newCoord, 0, index, false));
-
+        if(playerPlaced){
+            currentLvl.blocks.Add(newCoord, new block (blockType.platform, newCoord, 0, index, false));
+        }
         newPlatform.GetComponent<SpriteRenderer>().sprite = oneWays.Middle[index];
         newPlatform.name = "Placed Platform";
+    }
+
+    void placeDeath(int x, int y, GameObject newObstacle, bool playerPlaced){
+        coordinate2D newCoord = new coordinate2D (x, y);
+        if(playerPlaced){
+            currentLvl.blocks.Add(newCoord, new block (blockType.obstacle, newCoord, 0, 0, false));
+        }
+
+        newObstacle.GetComponent<SpriteRenderer>().sprite = this.GetComponent<w1Spikes>().general;
+        newObstacle.name = "Placed Obstacle";
     }
 
     void erase(int x, int y){ 
@@ -822,9 +848,11 @@ public class editorController : MonoBehaviour
         //Reads the tiledata and builds the level accordingly
         placedBlocks = new GameObject [size[0], size[1]];
 
+        loadingLevel = true;
         foreach(KeyValuePair<coordinate2D, block> block in currentLvl.blocks){
             //int x = Mathf.FloorToInt((i - 4) / size[1]);
             //Debug.Log("(" + (i - 4 - x * size[0]) + ", " + x + ")");
+            placeSelected = (int)mode.block;
             if(block.Value.type == blockType.block){
                 Place(block.Value.placePos.x, block.Value.placePos.y, false);
             }
@@ -837,7 +865,16 @@ public class editorController : MonoBehaviour
             if(block.Value.type == blockType.door && block.Value.coreTile){
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(otherObjects[2], new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion());
             }
+            if(block.Value.type == blockType.platform){
+                placeSelected = (int)mode.platform;
+                Place(block.Value.placePos.x, block.Value.placePos.y, false);
+            }
+            if(block.Value.type == blockType.obstacle){
+                placeSelected = (int)mode.obstacle;
+                Place(block.Value.placePos.x, block.Value.placePos.y, false);
+            }
         }
+        loadingLevel = false;
 
         gridReload();
         log.text = "Successfully loaded " + path;
@@ -846,6 +883,10 @@ public class editorController : MonoBehaviour
     public void selectTool(int select){
         //Debug.Log(select);
         placeSelected = select;
+
+        if(select != (int)mode.obstacle){
+            rotate = 0;
+        }
 
         if (select == (int)mode.spawn || select == (int)mode.button || select == (int)mode.door){
             singleFill.interactable = false;
@@ -957,6 +998,9 @@ public class editorController : MonoBehaviour
     }
 
     void reloadBlocks(){
+        if(loadingLevel){
+            return;
+        }
         for(int x = 0; x < size[0]; x++){
             for(int y = 0; y < size[1]; y++){
                 if(checkTileOccupancy(x, y) == 0){
@@ -1121,6 +1165,16 @@ public class editorController : MonoBehaviour
                     if(wallLeft){
                         sr.sprite = oneWays.Middle[4];
                     }
+                }
+            } else if(currentLvl.getTile(x, y).type == blockType.obstacle){
+                SpriteRenderer sr = placedBlocks[x, y].GetComponent<SpriteRenderer>();
+                sr.color = new Color(1, .88f, .88f);
+                if(checkTileOccupancy(x, y - 1) == 0 && checkTileOccupancy(x, y + 1) != 0){
+                    sr.sprite = this.GetComponent<w1Spikes>().bottom;
+                } else if(checkTileOccupancy(x, y - 1) != 0 && checkTileOccupancy(x, y + 1) == 0){
+                    sr.sprite = this.GetComponent<w1Spikes>().top;
+                } else{
+                    sr.sprite = this.GetComponent<w1Spikes>().general;
                 }
             }}}
         }

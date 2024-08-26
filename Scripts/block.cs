@@ -18,6 +18,7 @@ public class block
     public int blockVer;
     public int activeState;
     public bool coreTile;
+    public List<string> tags;
 
     public block (blockType type, coordinate2D placePos, double rot, int blockVer, bool coreTile){
         this.type = type;

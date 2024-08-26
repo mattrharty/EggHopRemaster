@@ -10,10 +10,9 @@ using UnityEngine;
             public List<Sprite> endRight;
         }
 
-        public class w1Spikes : MonoBehaviour {
-            public List<Sprite> one;
-            public List<Sprite> two;
-            public List<Sprite> three;
-            public List<Sprite> four;
+        public class w1SpikesA : MonoBehaviour {
+            public Sprite bottom;
+            public Sprite top;
+            public Sprite general;
         }
     }
