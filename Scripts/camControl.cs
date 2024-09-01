@@ -11,9 +11,9 @@ public class camControl : MonoBehaviour
     public Transform cam;
 
     [SerializeField]
-    InputAction moveCam;
+    public InputAction moveCam;
     [SerializeField]
-    InputAction zooom;
+    public InputAction zooom;
     [SerializeField]
     public InputAction mousePos;
     public InputAction rightClick;
@@ -56,8 +56,8 @@ public class camControl : MonoBehaviour
         if(!rightClick.IsPressed()){
             dragging = false;
             newPos = new Vector3 (
-                camSpeed * Time.deltaTime * moveCam.ReadValue<Vector2>().x,
-                camSpeed * Time.deltaTime * moveCam.ReadValue<Vector2>().y,
+                camSpeed * Time.deltaTime * GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>().axis.x,
+                camSpeed * Time.deltaTime * GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>().axis.y,
                 0); 
         } else {
             diffX = 0f;

@@ -11,7 +11,8 @@ using SFB;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
 using UnityEngine.U2D;
-using spritePaths;
+using UnityEngine.SceneManagement;
+using Unity.VisualScripting;
 
 public class editorController : MonoBehaviour
 {
@@ -30,6 +31,7 @@ public class editorController : MonoBehaviour
 
     [SerializeField]
     int maxSize = 3;
+    public TMP_InputField levelName;
     public int minSize = 6;
     public int maxSizeNum = 256;
     public TMP_InputField xField;
@@ -47,7 +49,7 @@ public class editorController : MonoBehaviour
 
     public camControl camScript;
 
-    public Button[] buttons;
+    public List<Button> buttons;
 
     int seed;
 
@@ -95,6 +97,8 @@ public class editorController : MonoBehaviour
 
     bool loadingLevel = false;
 
+    public List<Sprite> blockButton;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -114,7 +118,10 @@ public class editorController : MonoBehaviour
         camScript.bounds[3] = 0;
         currentLvl.size = size;
 
-        buttons = GameObject.FindObjectsOfType<Button>();
+        GameObject[] buttonsObj = GameObject.FindGameObjectsWithTag("blockPanel");
+        foreach(GameObject obj in buttonsObj){
+            buttons.Add(obj.GetComponent<Button>());
+        }
 
         seed = UnityEngine.Random.Range(100000, 999999);
         seedField.characterLimit = 6;
@@ -134,10 +141,11 @@ public class editorController : MonoBehaviour
             }
             placeButtons[i].Enable();
             Button toolButton = tools[i];
-            placeButtons[i].performed += context => hotkey(toolButton);
+            //placeButtons[i].performed += context => hotkey(toolButton);
         }
 
         singleFill.interactable = true;
+        singleFill.isOn = placeMode == (int)mode.fill;
 
         currentLvl = new levelData ();
         currentLvl.blocks = new Dictionary<coordinate2D, block>();
@@ -145,7 +153,7 @@ public class editorController : MonoBehaviour
 
         gridReload();
 
-        versionDis.text = "Egg Hop Level Editor " + Application.version;
+        versionDis.text = "Egg Hop " + Application.version;
 
         oneWays = this.GetComponent<w1OneWay>();
     }
@@ -342,7 +350,15 @@ public class editorController : MonoBehaviour
     }
 
     public void Quit () {
-        Application.Quit();
+        camScript.moveCam.Disable();
+        camScript.zooom.Disable();
+        camScript.mousePos.Disable();
+        camScript.rightClick.Disable();
+        camScript.mouseMove.Disable();
+
+        leftClick.Disable();
+        esc.Disable();
+        SceneManager.LoadScene("Main Menu");
     }
 
     void fill(){
@@ -639,6 +655,11 @@ public class editorController : MonoBehaviour
             return;
         }*/
         string saveName = "Custom Level " + DateTime.Now.TimeOfDay.TotalSeconds;
+        
+            
+        if(levelName.text != null || levelName.text.Length > 0){
+            saveName = levelName.text;
+        }
 
         //Common.DownloadFileHelper.DownloadToFile(content, saveName);
         var extensionList = new [] {
@@ -657,6 +678,9 @@ public class editorController : MonoBehaviour
             log.text = newLog;
         }
         File.WriteAllText(path, JsonConvert.SerializeObject(currentLvl));
+
+        levelTemp.currentLvl = currentLvl;
+        levelTemp.levelPlaying = currentLvl;
 
         newLog = "Saved " + path;
         log.color = cursorColors[1];
@@ -902,10 +926,12 @@ public class editorController : MonoBehaviour
     }
 
     public void selectTool2(Button button){
-        for(int i = 0; i < buttons.Length; i++){
+        for(int i = 0; i < buttons.Count; i++){
             buttons[i].interactable = true;
+            buttons[i].gameObject.GetComponent<Image>().sprite = blockButton[0];
         }
         button.interactable = false;
+        button.gameObject.GetComponent<Image>().sprite = blockButton[1];
     }
 
     public void selectPlaceMethod(Toggle toggle){

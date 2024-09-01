@@ -34,7 +34,8 @@ public class block
 public class levelData{
     public Dictionary<coordinate2D, block> blocks;
     public int[] size;
-
+    public int seed;
+    public int eggCount;
 
 
     public block getTile(blockType type) {
