@@ -29,7 +29,12 @@ public class PlayerMovement : MonoBehaviour
 
     public GameObject egg;
     public Transform eggDaddy;
+    public GameObject eggCounterDaddy;
+    public Animator counterAnim;
     public int eggCount = -1;
+
+    [HideInInspector]
+    public bool eggCooldown = true;
 
     public Rigidbody2D rb;
     SpriteRenderer sr;
@@ -49,10 +54,15 @@ public class PlayerMovement : MonoBehaviour
 
         ones.SetTrigger("reset");
         tens.SetTrigger("reset");
+
+        eggCooldown = true;
     }
 
     void layEgg(){
-        if(eggCount > 0){
+        if(eggCount > 0 && eggCooldown){
+            counterAnim.SetTrigger("use");
+            StartCoroutine(layCooldown());
+
             eggCount--;
 
             GameObject newEgg = Instantiate(egg, transform.position, new Quaternion(), eggDaddy);
@@ -60,6 +70,12 @@ public class PlayerMovement : MonoBehaviour
 
             rb.velocity = new Vector2 (rb.velocity.x, jumpHeight * 0.82f);
         }
+    }
+
+    IEnumerator layCooldown(){
+        eggCooldown = false;
+        yield return new WaitForSecondsRealtime(1.25f);
+        eggCooldown = true;
     }
 
     // Update is called once per frame
@@ -107,6 +123,8 @@ public class PlayerMovement : MonoBehaviour
         if(eggCount != -1){
             ones.SetInteger("eggCount", eggCount - Mathf.FloorToInt(eggCount / 10) * 10);
             tens.SetInteger("eggCount", Mathf.FloorToInt(eggCount) / 10);
+
+            counterAnim.SetInteger("eggs", eggCount);
         }
     }
 

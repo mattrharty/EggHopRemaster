@@ -228,11 +228,17 @@ public class levelPlayer : MonoBehaviour
         goos.gameObject.GetComponent<PlayerMovement>().eggCount = currentLvl.eggCount;
         goos.gameObject.GetComponent<PlayerMovement>().ones.SetTrigger("reset");
         goos.gameObject.GetComponent<PlayerMovement>().tens.SetTrigger("reset");
+        if(currentLvl.eggCount <= 0){
+            goos.gameObject.GetComponent<PlayerMovement>().eggCounterDaddy.SetActive(false);
+        } else {
+            goos.gameObject.GetComponent<PlayerMovement>().eggCounterDaddy.SetActive(true);
+        }
         Time.timeScale = 1;
     }
 
     public IEnumerator resetPlayerPos(){
         //goos.gameObject.GetComponent<SpriteRenderer>().enabled = false;
+        goos.gameObject.GetComponent<PlayerMovement>().eggCooldown = true;
         goos.gameObject.GetComponent<PlayerMovement>().enabled = false;
         goos.gameObject.GetComponent<BoxCollider2D>().enabled = false;
         goos.gameObject.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Static;

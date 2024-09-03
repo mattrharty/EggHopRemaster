@@ -99,6 +99,11 @@ public class editorController : MonoBehaviour
 
     public List<Sprite> blockButton;
 
+    [SerializeField]
+    Material normMat;
+    [SerializeField]
+    Material redMat;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -121,6 +126,7 @@ public class editorController : MonoBehaviour
         GameObject[] buttonsObj = GameObject.FindGameObjectsWithTag("blockPanel");
         foreach(GameObject obj in buttonsObj){
             buttons.Add(obj.GetComponent<Button>());
+            obj.GetComponent<Image>().material = normMat;
         }
 
         seed = UnityEngine.Random.Range(100000, 999999);
@@ -615,6 +621,12 @@ public class editorController : MonoBehaviour
         gridReload();
     }
 
+    System.Collections.IEnumerator flashButton(GameObject button){
+        button.GetComponent<Image>().material = redMat;
+        yield return new WaitForSecondsRealtime(0.25f);
+        button.GetComponent<Image>().material = normMat;
+    }
+
     //Exports the custom level to a local file
     public void Save(TMP_Text log){
         bool spawnPlaced = false;
@@ -637,10 +649,13 @@ public class editorController : MonoBehaviour
             log.color = cursorColors[0];
             if(!spawnPlaced){
                 newLog += "spawn is missing\n";
+                flashButton(buttons[2].gameObject);
             } if(!buttonPlaced){
                 newLog += "button is missing\n";
+                flashButton(buttons[3].gameObject);
             } if(!doorPlaced){
                 newLog += "door is missing\n";
+                flashButton(buttons[4].gameObject);
             }
             //Debug.Log(newLog + spawnPlaced + ", " + buttonPlaced + ", " + doorPlaced);
             log.text = newLog;
@@ -657,7 +672,10 @@ public class editorController : MonoBehaviour
         string saveName = "Custom Level " + DateTime.Now.TimeOfDay.TotalSeconds;
         
             
-        if(levelName.text != null || levelName.text.Length > 0){
+        /*if(levelName.text != null){
+            saveName = levelName.text;
+        }*/
+        if(levelName.text.Length > 0){
             saveName = levelName.text;
         }
 
@@ -670,7 +688,7 @@ public class editorController : MonoBehaviour
         string path = "";
         currentLvl.size = size;
         #if !UNITY_WEBGL
-        path = StandaloneFileBrowser.SaveFilePanel("Save custom level", "", saveName, extensionList);
+            path = StandaloneFileBrowser.SaveFilePanel("Save custom level", "", saveName, extensionList);
         #endif
         if(path == "" || path == null){
             newLog = "No download path selected";
@@ -913,6 +931,7 @@ public class editorController : MonoBehaviour
         }
 
         if (select == (int)mode.spawn || select == (int)mode.button || select == (int)mode.door){
+            singleFill.isOn = false;
             singleFill.interactable = false;
             placeMode = (int)mode.single;
         } else {

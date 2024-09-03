@@ -23,6 +23,8 @@ public class gameManager : MonoBehaviour
 
         levelTemp.currentLvl = JsonConvert.DeserializeObject<levelData>(defaultLvl.text);
         levelTemp.levelPlaying = JsonConvert.DeserializeObject<levelData>(defaultLvl.text);
+
+        Screen.fullScreenMode = FullScreenMode.ExclusiveFullScreen;
     }
 
     void Update(){
