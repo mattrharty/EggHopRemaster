@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
 using System.IO;
+using UnityEngine.SceneManagement;
 
 public class gameManager : MonoBehaviour
 {
@@ -25,10 +26,21 @@ public class gameManager : MonoBehaviour
         levelTemp.levelPlaying = JsonConvert.DeserializeObject<levelData>(defaultLvl.text);
 
         Screen.fullScreenMode = FullScreenMode.ExclusiveFullScreen;
+
+        //SceneManager.sceneLoaded -= OnSceneLoaded;
+        //SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     void Update(){
         axis.x = Input.GetAxis("Horizontal");
         axis.y = Input.GetAxis("Vertical");
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        foreach(SpriteRenderer sr in GameObject.FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None)){
+            Debug.Log(sr.gameObject);
+            sr.gameObject.AddComponent(typeof(renderCheck));
+        }
     }
 }

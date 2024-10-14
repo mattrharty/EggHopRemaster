@@ -66,9 +66,9 @@ public class PlayerMovement : MonoBehaviour
             eggCount--;
 
             GameObject newEgg = Instantiate(egg, transform.position, new Quaternion(), eggDaddy);
-            newEgg.GetComponent<Rigidbody2D>().velocity = new Vector2 (0, -2);
+            newEgg.GetComponent<Rigidbody2D>().linearVelocity = new Vector2 (0, -2);
 
-            rb.velocity = new Vector2 (rb.velocity.x, jumpHeight * 0.82f);
+            rb.linearVelocity = new Vector2 (rb.linearVelocity.x, jumpHeight * 0.82f);
         }
     }
 
@@ -84,15 +84,15 @@ public class PlayerMovement : MonoBehaviour
 
         direction = GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>().axis.x;
 
-        if(Mathf.Abs(direction) > 0.2f && Mathf.Abs(rb.velocity.y) < 0.1f){
+        if(Mathf.Abs(direction) > 0.2f && Mathf.Abs(rb.linearVelocity.y) < 0.1f){
             animate.enabled = true;
             animate.SetBool("walking", true);
         } else {
             animate.SetBool("walking", false);
-            if(rb.velocity.y > 0.1f){
+            if(rb.linearVelocity.y > 0.1f){
                 animate.enabled = false;
                 sr.sprite = jumping[0];
-            } else if(rb.velocity.y < -0.1f){
+            } else if(rb.linearVelocity.y < -0.1f){
                 animate.enabled = false;
                 sr.sprite = jumping[1];
             } else {
@@ -112,13 +112,13 @@ public class PlayerMovement : MonoBehaviour
 
         //transform.position = transform.GetChild(0).transform.position;
 
-        Vector3 newPos = new Vector3(direction * speed, rb.velocity.y, 0);
-        rb.velocity = newPos;
+        Vector3 newPos = new Vector3(direction * speed, rb.linearVelocity.y, 0);
+        rb.linearVelocity = newPos;
         rb.gravityScale = 2.3f;
 
         jumpCooldown--;
 
-        rb.velocity = new Vector2 (Mathf.Clamp(rb.velocity.x, -40, 40), Mathf.Clamp(rb.velocity.y, -25, 40));
+        rb.linearVelocity = new Vector2 (Mathf.Clamp(rb.linearVelocity.x, -40, 40), Mathf.Clamp(rb.linearVelocity.y, -25, 40));
 
         if(eggCount != -1){
             ones.SetInteger("eggCount", eggCount - Mathf.FloorToInt(eggCount / 10) * 10);
@@ -129,8 +129,8 @@ public class PlayerMovement : MonoBehaviour
     }
 
     void jump(){
-        if(grounded > 0 && jumpCooldown <= 0 && Mathf.Abs(rb.velocity.y) < 0.01f){
-            rb.velocity = transform.up * jumpHeight;
+        if(grounded > 0 && jumpCooldown <= 0 && Mathf.Abs(rb.linearVelocity.y) < 0.01f){
+            rb.linearVelocity = transform.up * jumpHeight;
             jumpCooldown = 3;
         }
     }

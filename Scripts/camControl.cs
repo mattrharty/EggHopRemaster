@@ -85,7 +85,7 @@ public class camControl : MonoBehaviour
         cam.position += newPos;
 
         //Zooms in and out the camera
-        zoom += zooom.ReadValue<float>();
+        zoom += zooom.ReadValue<float>() * 50;
         zoom = Mathf.Clamp(zoom, -1000, 3600);
         cam.GetComponent<Camera>().orthographicSize = Mathf.Pow(zoomScale, zoom);
 

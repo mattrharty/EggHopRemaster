@@ -20,6 +20,8 @@ public class editorUI : MonoBehaviour
     public List<Sprite> counterSprites;
     public List<Sprite> blockSelect;
     public List<coordinate2D> thumbnailSize;
+    public List<Sprite> blueRedBlocks;
+    public Image blueRedBlock;
 
     public editorController edit;
     GameObject pauseMenu;
@@ -28,6 +30,18 @@ public class editorUI : MonoBehaviour
 
     public void togglePanel(Animator anim){
         anim.SetBool("open", !anim.GetBool("open"));
+    }
+
+    public void setRed(Animator anim){
+        anim.SetBool("isRed", edit.blueRed.isOn);
+        edit.redSelect = edit.blueRed.isOn;
+        if(edit.placeSelected == (int)mode.redBlock || edit.placeSelected == (int)mode.blueBlock){
+            if(edit.redSelect){
+                edit.placeSelected = (int)mode.redBlock;
+            } else {
+                edit.placeSelected = (int)mode.blueBlock;
+            }
+        }
     }
 
     public void minus(){
@@ -53,8 +67,18 @@ public class editorUI : MonoBehaviour
         ones.sprite = counterSprites[edit.currentLvl.eggCount - Mathf.FloorToInt(edit.currentLvl.eggCount / 10) * 10];
         tens.sprite = counterSprites[Mathf.FloorToInt(edit.currentLvl.eggCount / 10)];
 
+        if(edit.redSelect){
+            blockSelect[8] = blueRedBlocks[0];
+        } else {
+            blockSelect[8] = blueRedBlocks[1];
+        }
+        blueRedBlock.sprite = blockSelect[8];
+
+
         ribbon.sprite = blockSelect[edit.placeSelected];
         ribbon.gameObject.transform.localScale = new Vector3 (thumbnailSize[edit.placeSelected].x / 100f, thumbnailSize[edit.placeSelected].y / 100f, 1f);
+
+        edit.blueRed.transform.GetComponent<Animator>().SetBool("Disabled", !edit.blueRed.interactable);
     }
 
     void Start(){
@@ -65,6 +89,7 @@ public class editorUI : MonoBehaviour
         esc.performed += context => pause(!pauseMenu.activeSelf);
 
         pauseMenu.transform.GetChild(pauseMenu.transform.childCount - 1).gameObject.GetComponent<Toggle>().isOn = Screen.fullScreenMode == FullScreenMode.ExclusiveFullScreen;
+        GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().playTrans(true, 0);
     }
 
     public void pause(bool paused){

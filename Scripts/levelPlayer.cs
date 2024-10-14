@@ -11,6 +11,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using Unity.VisualScripting;
 using UnityEngine.UI;
+using UnityEditor.Animations;
 
 public class levelPlayer : MonoBehaviour
 {
@@ -51,6 +52,8 @@ public class levelPlayer : MonoBehaviour
     public  List<Sprite> w1ColBot;
     public  List<Sprite> w1ColSingle;
     Dictionary<string, List<Sprite>> w1Columns = new Dictionary<string, List<Sprite>>();
+
+    public twoState twoStateGlobal;
 
     public Transform goos;
 
@@ -199,13 +202,13 @@ public class levelPlayer : MonoBehaviour
                 //Debug.Log(block.Value.blockVer);
             }
             if(block.Value.type == blockType.spawn && block.Value.coreTile){
-                placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.spawn, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), lvlDaddy);
+                placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.spawn, new Vector3(block.Value.placePos.x, block.Value.placePos.y - 0.1f, 0), new Quaternion(), lvlDaddy);
             }
             if(block.Value.type == blockType.button && block.Value.coreTile){
-                placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.button, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), lvlDaddy);
+                placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.button, new Vector3(block.Value.placePos.x, block.Value.placePos.y - 0.1f, 0), new Quaternion(), lvlDaddy);
             }
             if(block.Value.type == blockType.door && block.Value.coreTile){
-                placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.door, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), lvlDaddy);
+                placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.door, new Vector3(block.Value.placePos.x, block.Value.placePos.y - 0.1f, 0), new Quaternion(), lvlDaddy);
             }
             if(block.Value.type == blockType.platform){
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.platform, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), platformDaddy);
@@ -223,7 +226,7 @@ public class levelPlayer : MonoBehaviour
         goos.position = new Vector3(currentLvl.getTile(blockType.spawn, true).placePos.x, currentLvl.getTile(blockType.spawn, true).placePos.y, 0);
         goos.gameObject.GetComponent<SpriteRenderer>().enabled = true;
         goos.gameObject.GetComponent<PlayerMovement>().enabled = true;
-        goos.gameObject.GetComponent<BoxCollider2D>().enabled = true;
+        goos.transform.GetChild(0).gameObject.GetComponent<BoxCollider2D>().enabled = true;
         goos.gameObject.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Dynamic;
         goos.gameObject.GetComponent<PlayerMovement>().eggCount = currentLvl.eggCount;
         goos.gameObject.GetComponent<PlayerMovement>().ones.SetTrigger("reset");
@@ -233,15 +236,20 @@ public class levelPlayer : MonoBehaviour
         } else {
             goos.gameObject.GetComponent<PlayerMovement>().eggCounterDaddy.SetActive(true);
         }
+        GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().playTrans(true, 0);
         Time.timeScale = 1;
     }
 
     public IEnumerator resetPlayerPos(){
-        //goos.gameObject.GetComponent<SpriteRenderer>().enabled = false;
         goos.gameObject.GetComponent<PlayerMovement>().eggCooldown = true;
         goos.gameObject.GetComponent<PlayerMovement>().enabled = false;
-        goos.gameObject.GetComponent<BoxCollider2D>().enabled = false;
+        goos.transform.GetChild(0).gameObject.GetComponent<BoxCollider2D>().enabled = false;
         goos.gameObject.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Static;
+
+        yield return new WaitUntil(() => GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().anims[0].GetCurrentAnimatorStateInfo(0).normalizedTime < 1);
+        yield return new WaitUntil(() => GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().anims[0].GetCurrentAnimatorStateInfo(0).normalizedTime >= 1);
+
+        //goos.gameObject.GetComponent<SpriteRenderer>().enabled = false;
         goos.position = new Vector3(currentLvl.getTile(blockType.spawn, true).placePos.x, currentLvl.getTile(blockType.spawn, true).placePos.y, 0);
         yield return new WaitForSeconds(1.0f);
         Load("", true);
@@ -515,4 +523,18 @@ public class levelPlayer : MonoBehaviour
             deathZone.isTrigger = true;
         }
     }
+
+    public twoState otherState(){
+        if(twoStateGlobal == twoState.blue){
+            return twoState.red;
+        } else {
+            return twoState.blue;
+        }
+    }
+}
+
+public enum twoState
+{
+    red,
+    blue
 }

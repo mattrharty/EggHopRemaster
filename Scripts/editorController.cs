@@ -10,9 +10,7 @@ using System;
 using SFB;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
-using UnityEngine.U2D;
 using UnityEngine.SceneManagement;
-using Unity.VisualScripting;
 
 public class editorController : MonoBehaviour
 {
@@ -46,6 +44,7 @@ public class editorController : MonoBehaviour
 
     public int placeMode;
     public int placeSelected;
+    public bool redSelect = true;
 
     public camControl camScript;
 
@@ -75,6 +74,7 @@ public class editorController : MonoBehaviour
     public Transform borderDaddy;
 
     public Toggle singleFill;
+    public Toggle blueRed;
 
     public  List<Sprite> w1ColTop;
     public  List<Sprite> w1ColMid;
@@ -152,6 +152,9 @@ public class editorController : MonoBehaviour
 
         singleFill.interactable = true;
         singleFill.isOn = placeMode == (int)mode.fill;
+
+        blueRed.interactable = false;
+        blueRed.isOn = redSelect;
 
         currentLvl = new levelData ();
         currentLvl.blocks = new Dictionary<coordinate2D, block>();
@@ -352,6 +355,84 @@ public class editorController : MonoBehaviour
 
             //Adds the prefab to placed blocks
             placedBlocks[mousePos[0], mousePos[1]] = newDoor;
+        } else if (placeSelected == (int)mode.twoStateButton){
+            //Checks to see if the placement location is valid
+            for (int y = 0; y <= 1; y++){
+                try {
+                    if (currentLvl.getTile(mousePos[0], y + mousePos[1]) != null && currentLvl.getTile(mousePos[0], y + mousePos[1]).type != blockType.spawn){
+                        readyToPlace = false;
+                    }
+                } catch {
+                    readyToPlace = false;
+                }
+            }
+            if(!readyToPlace){
+                return;
+            }
+
+            //Updates the tile data
+            for (int y = 0; y <= 1; y++)
+            {
+                try
+                {
+                    currentLvl.occupiedTiles.Add(new coordinate2D(mousePos[0], y + mousePos[1]));
+                    block newBlock = new block(blockType.twoStateButton, new coordinate2D(mousePos[0], y + mousePos[1]), 0, 0, false);
+                    currentLvl.blocks.Add(newBlock.placePos, newBlock);
+                    if (y == 0)
+                    {
+                        newBlock.coreTile = true;
+                    }
+                }
+                catch
+                {
+                    return;
+                }
+            }
+
+            //Creates the prefab
+            GameObject newObj = Instantiate(otherObjects[3], new Vector3(mousePos[0], mousePos[1], 0), new Quaternion());
+
+            //Adds the prefab to placed blocks
+            placedBlocks[mousePos[0], mousePos[1]] = newObj;
+        } else if (placeSelected == (int)mode.twoStateLever){
+            //Checks to see if the placement location is valid
+            for (int y = 0; y <= 1; y++){
+                try {
+                    if (currentLvl.getTile(mousePos[0], y + mousePos[1]) != null && currentLvl.getTile(mousePos[0], y + mousePos[1]).type != blockType.spawn){
+                        readyToPlace = false;
+                    }
+                } catch {
+                    readyToPlace = false;
+                }
+            }
+            if(!readyToPlace){
+                return;
+            }
+
+            //Updates the tile data
+            for (int y = 0; y <= 1; y++)
+            {
+                try
+                {
+                    currentLvl.occupiedTiles.Add(new coordinate2D(mousePos[0], y + mousePos[1]));
+                    block newBlock = new block(blockType.twoStateLever, new coordinate2D(mousePos[0], y + mousePos[1]), 0, 0, false);
+                    currentLvl.blocks.Add(newBlock.placePos, newBlock);
+                    if (y == 0)
+                    {
+                        newBlock.coreTile = true;
+                    }
+                }
+                catch
+                {
+                    return;
+                }
+            }
+
+            //Creates the prefab
+            GameObject newObj = Instantiate(otherObjects[4], new Vector3(mousePos[0], mousePos[1], 0), new Quaternion());
+
+            //Adds the prefab to placed blocks
+            placedBlocks[mousePos[0], mousePos[1]] = newObj;
         }
     }
 
@@ -412,7 +493,10 @@ public class editorController : MonoBehaviour
     bool placingOne(){
         if(placeSelected == (int)mode.block ||
             placeSelected == (int)mode.platform ||
-            placeSelected == (int)mode.obstacle){
+            placeSelected == (int)mode.obstacle ||
+            placeSelected == (int)mode.tempBlock ||
+            placeSelected == (int)mode.redBlock ||
+            placeSelected == (int)mode.blueBlock){
                 return true;
         } else {
             return false;
@@ -440,27 +524,35 @@ public class editorController : MonoBehaviour
                 tileCursor.transform.GetChild(2).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(3).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(4).gameObject.SetActive(false);
+                tileCursor.transform.GetChild(5).gameObject.SetActive(false);
             }else if (placeSelected == (int)mode.spawn) {
                 tileCursor.transform.GetChild(0).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(1).gameObject.SetActive(true);
                 tileCursor.transform.GetChild(2).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(3).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(4).gameObject.SetActive(true);
-                //tileCursor.transform.GetChild(5).gameObject.SetActive(false);
+                tileCursor.transform.GetChild(5).gameObject.SetActive(false);
             }else if (placeSelected == (int)mode.button) {
                 tileCursor.transform.GetChild(0).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(1).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(2).gameObject.SetActive(true);
                 tileCursor.transform.GetChild(3).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(4).gameObject.SetActive(true);
-                //tileCursor.transform.GetChild(5).gameObject.SetActive(false);
+                tileCursor.transform.GetChild(5).gameObject.SetActive(false);
             }else if (placeSelected == (int)mode.door) {
                 tileCursor.transform.GetChild(0).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(1).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(2).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(3).gameObject.SetActive(true);
                 tileCursor.transform.GetChild(4).gameObject.SetActive(true);
-                //tileCursor.transform.GetChild(5).gameObject.SetActive(false);
+                tileCursor.transform.GetChild(5).gameObject.SetActive(false);
+            }else if (placeSelected == (int)mode.twoStateButton || placeSelected == (int)mode.twoStateLever) {
+                tileCursor.transform.GetChild(0).gameObject.SetActive(false);
+                tileCursor.transform.GetChild(1).gameObject.SetActive(false);
+                tileCursor.transform.GetChild(2).gameObject.SetActive(false);
+                tileCursor.transform.GetChild(3).gameObject.SetActive(false);
+                tileCursor.transform.GetChild(4).gameObject.SetActive(false);
+                tileCursor.transform.GetChild(5).gameObject.SetActive(true);
             }
 
             if(placeSelected != (int)mode.erase){
@@ -475,7 +567,7 @@ public class editorController : MonoBehaviour
                 tileCursor.transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[0];
             } else if(placingOne() || placeSelected == (int)mode.erase){
                 tileCursor.transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[1];
-            } else if(new List<int> {(int)mode.spawn, (int)mode.button, (int)mode.door}.Contains(placeSelected)){
+            } else if(new List<int> {(int)mode.spawn, (int)mode.button, (int)mode.door, (int)mode.twoStateButton, (int)mode.twoStateLever}.Contains(placeSelected)){
                 //Correctly colors the borders for placing spawn, button, or door
                 for (int x = -1; x <= 1; x++){
                     try {
@@ -529,6 +621,18 @@ public class editorController : MonoBehaviour
                             } catch {
                                 tileCursor.transform.GetChild(3).GetChild(y + 4 * x + 4).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[0];
                             }
+                        }
+                    }
+                } else if (placeSelected == (int)mode.twoStateButton || placeSelected == (int)mode.twoStateLever){
+                    for (int y = 0; y <= 1; y++){
+                        try {
+                            if (currentLvl.getTile(mousePos[0], y + mousePos[1]) == null || currentLvl.getTile(mousePos[0], y + mousePos[1]).type == blockType.door){
+                                tileCursor.transform.GetChild(5).GetChild(y).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[1];
+                            } else {
+                                tileCursor.transform.GetChild(5).GetChild(y).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[0];
+                            }
+                        } catch {
+                           tileCursor.transform.GetChild(5).GetChild(y).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[0];
                         }
                     }
                 }
@@ -756,6 +860,12 @@ public class editorController : MonoBehaviour
             placePlatform(x, y, newBlock, playerPlaced);
         } else if (placeSelected == (int)mode.obstacle){
             placeDeath(x, y, newBlock, playerPlaced);
+        } else if (placeSelected == (int)mode.tempBlock){
+            placeTempPlat(x, y, newBlock, playerPlaced);
+        } else if (placeSelected == (int)mode.blueBlock){
+            placeTwoStateBlue(x, y, newBlock, playerPlaced);
+        } else if (placeSelected == (int)mode.redBlock){
+            placeTwoStateRed(x, y, newBlock, playerPlaced);
         }
 
         newBlock.GetComponent<SpriteRenderer>().sortingOrder = -1;
@@ -799,6 +909,40 @@ public class editorController : MonoBehaviour
         newObstacle.name = "Placed Obstacle";
     }
 
+    void placeTempPlat(int x, int y, GameObject newObj, bool playerPlaced){
+        int n = Math.Abs((Mathf.RoundToInt(x / (float)Math.PI) * Mathf.RoundToInt(seed / 17)) + (Mathf.RoundToInt(y * (float)Math.PI) * Mathf.RoundToInt(seed / 19))) + x * y;
+        int index = Mathf.RoundToInt(n / 10) % 3;
+        
+        coordinate2D newCoord = new coordinate2D (x, y);
+        if(playerPlaced){
+            currentLvl.blocks.Add(newCoord, new block (blockType.blueBlock, newCoord, 0, index, false));
+        }
+
+        newObj.GetComponent<SpriteRenderer>().sprite = this.GetComponent<extraSprites>().tempPlat[index];
+        newObj.name = "Placed Obstacle";
+    }
+
+    void placeTwoStateBlue(int x, int y, GameObject newObj, bool playerPlaced){
+        coordinate2D newCoord = new coordinate2D (x, y);
+        if(playerPlaced){
+            currentLvl.blocks.Add(newCoord, new block (blockType.blueBlock, newCoord, 0, 0, false));
+        }
+
+        newObj.GetComponent<SpriteRenderer>().sprite = this.GetComponent<extraSprites>().blockBlue;
+        newObj.name = "Placed Obstacle";
+    }
+
+    void placeTwoStateRed(int x, int y, GameObject newObj, bool playerPlaced){
+        coordinate2D newCoord = new coordinate2D (x, y);
+        if(playerPlaced){
+            currentLvl.blocks.Add(newCoord, new block (blockType.blueBlock, newCoord, 0, 0, false));
+        }
+
+        newObj.GetComponent<SpriteRenderer>().sprite = this.GetComponent<extraSprites>().blockRed;
+        newObj.name = "Placed Obstacle";
+    }
+
+
     void erase(int x, int y){ 
         if (currentLvl.getTile(x, y) == null || !tileCursor.activeSelf){
             return;
@@ -816,6 +960,21 @@ public class editorController : MonoBehaviour
                 currentLvl.blocks.Remove(specTileToDelete.placePos);
             }
             return;
+        }
+        if(currentLvl.getTile(x, y).type == blockType.twoStateButton || currentLvl.getTile(x, y).type == blockType.twoStateLever){
+            if(currentLvl.getTile(x, y).coreTile){
+                GameObject.Destroy(placedBlocks[x, y]);
+                currentLvl.occupiedTiles.Remove(currentLvl.getTile(x, y).placePos);
+                currentLvl.blocks.Remove(currentLvl.getTile(x, y).placePos);
+                currentLvl.occupiedTiles.Remove(currentLvl.getTile(x, y + 1).placePos);
+                currentLvl.blocks.Remove(currentLvl.getTile(x, y + 1).placePos);
+            } else {
+                GameObject.Destroy(placedBlocks[x, y - 1]);
+                currentLvl.occupiedTiles.Remove(currentLvl.getTile(x, y - 1).placePos);
+                currentLvl.blocks.Remove(currentLvl.getTile(x, y - 1).placePos);
+                currentLvl.occupiedTiles.Remove(currentLvl.getTile(x, y).placePos);
+                currentLvl.blocks.Remove(currentLvl.getTile(x, y).placePos);
+            }
         }
 
         //Deletes 1x1 blocks
@@ -930,7 +1089,7 @@ public class editorController : MonoBehaviour
             rotate = 0;
         }
 
-        if (select == (int)mode.spawn || select == (int)mode.button || select == (int)mode.door){
+        if (select == (int)mode.spawn || select == (int)mode.button || select == (int)mode.door || select == (int)mode.twoStateButton || select == (int)mode.twoStateLever){
             singleFill.isOn = false;
             singleFill.interactable = false;
             placeMode = (int)mode.single;
@@ -941,6 +1100,18 @@ public class editorController : MonoBehaviour
             } else {
                 placeMode = (int)mode.single;
             }
+        }
+        if(select == (int)mode.redBlock){
+            blueRed.interactable = true;
+            blueRed.isOn = redSelect;
+            if(redSelect){
+                placeSelected = (int)mode.redBlock;
+            } else {
+                placeSelected = (int)mode.blueBlock;
+            }
+        } else {
+            blueRed.interactable = false;
+            blueRed.isOn = redSelect;
         }
     }
 
@@ -1240,10 +1411,11 @@ public enum mode{
     door = 4,
     obstacle = 5,
     platform = 6,
-    // ^^Priority^^
-    slime = 7,
-    blueBlock = 8,
-    redBlock = 9,
+    tempBlock = 7,
+    redBlock = 8,
+    blueBlock = 9,
+    twoStateButton = 10,
+    twoStateLever = 11,
 
     single = 0,
     fill = 1

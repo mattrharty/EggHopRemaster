@@ -60,10 +60,10 @@ public class buttonDoor : MonoBehaviour
     void OnTriggerStay2D(Collider2D obj){
         //Debug.Log(obj);
         if (type == blockType.door && obj.gameObject.tag == "goose"){
-            if(pressed && obj.gameObject.GetComponent<PlayerMovement>().grounded > 0 && Mathf.Abs(obj.gameObject.GetComponent<PlayerMovement>().rb.velocity.y) < 0.01f){
+            if(pressed && obj.gameObject.GetComponent<PlayerMovement>().grounded > 0 && Mathf.Abs(obj.gameObject.GetComponent<PlayerMovement>().rb.linearVelocity.y) < 0.01f){
                 goose = obj.gameObject.GetComponent<SpriteRenderer>();
                 anim.SetBool("exit", true);
-                obj.gameObject.GetComponent<PlayerMovement>().rb.velocity = new Vector2 (0, 0);
+                obj.gameObject.GetComponent<PlayerMovement>().rb.linearVelocity = new Vector2 (0, 0);
                 obj.gameObject.GetComponent<PlayerMovement>().enabled = false;
             }
         }

@@ -185,7 +185,9 @@ public enum blockType {
     door,
     obstacle,
     platform,
-    // ^^Priority^^
+    tempPlat,
+    twoStateButton,
+    twoStateLever,
     slime,
     blueBlock,
     redBlock,
