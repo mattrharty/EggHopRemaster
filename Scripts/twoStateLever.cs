@@ -16,7 +16,7 @@ public class twoStateLever : MonoBehaviour
         local = lvl.twoStateGlobal;
     }
 
-    void OnTriggerEnter2D(Collider2D thing)
+    /*void OnTriggerEnter2D(Collider2D thing)
     {
         if (thing.gameObject.tag == "goose" || thing.gameObject.tag == "egg")
         {
@@ -37,13 +37,13 @@ public class twoStateLever : MonoBehaviour
                 }
             }
         }
-    }
+    }*/
 
     void OnTriggerExit2D(Collider2D thing)
     {
         if (thing.gameObject.tag == "goose" || thing.gameObject.tag == "egg")
         {
-            if (thing.gameObject.GetComponent<Rigidbody2D>().linearVelocity.x < 0)
+            if (thing.transform.parent.gameObject.GetComponent<Rigidbody2D>().linearVelocity.x < 0)
             {
                 if (lvl.twoStateGlobal != twoState.red)
                 {

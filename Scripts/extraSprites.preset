@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!181963792 &2655988077585873504
+Preset:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: extraSprites
+  m_TargetType:
+    m_NativeTypeID: 114
+    m_ManagedTypePPtr: {fileID: 11500000, guid: a04f416e480be114a9ac7d4549fb5ca4, type: 3}
+    m_ManagedTypeFallback: 
+  m_Properties:
+  - target: {fileID: 0}
+    propertyPath: m_Enabled
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_EditorHideFlags
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_EditorClassIdentifier
+    value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: tempPlat.Array.size
+    value: 3
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: 'tempPlat.Array.data[0]'
+    value: 
+    objectReference: {fileID: 8064110561615791171, guid: f2befcacf5a65204f8e8b72c86e3c5b4, type: 3}
+  - target: {fileID: 0}
+    propertyPath: 'tempPlat.Array.data[1]'
+    value: 
+    objectReference: {fileID: 3452901685940334595, guid: f2befcacf5a65204f8e8b72c86e3c5b4, type: 3}
+  - target: {fileID: 0}
+    propertyPath: 'tempPlat.Array.data[2]'
+    value: 
+    objectReference: {fileID: -2868032079035221399, guid: f2befcacf5a65204f8e8b72c86e3c5b4, type: 3}
+  - target: {fileID: 0}
+    propertyPath: blockRed
+    value: 
+    objectReference: {fileID: 1999327530221507914, guid: 20d6b033e6c60e948811952755d6a55c, type: 3}
+  - target: {fileID: 0}
+    propertyPath: blockBlue
+    value: 
+    objectReference: {fileID: -388050213, guid: 20d6b033e6c60e948811952755d6a55c, type: 3}
+  - target: {fileID: 0}
+    propertyPath: twoStateButton
+    value: 
+    objectReference: {fileID: 409118245641930112, guid: 6a8ff1566765d8d43a1933226f50c599, type: 3}
+  - target: {fileID: 0}
+    propertyPath: twoStateLever
+    value: 
+    objectReference: {fileID: 4733514731201448287, guid: aaaa305984b49ab4f93d2811cca81c03, type: 3}
+  m_ExcludedProperties: []
+  m_CoupledType:
+    m_NativeTypeID: 0
+    m_ManagedTypePPtr: {fileID: 0}
+    m_ManagedTypeFallback: 
+  m_CoupledProperties: []

@@ -915,7 +915,7 @@ public class editorController : MonoBehaviour
         
         coordinate2D newCoord = new coordinate2D (x, y);
         if(playerPlaced){
-            currentLvl.blocks.Add(newCoord, new block (blockType.blueBlock, newCoord, 0, index, false));
+            currentLvl.blocks.Add(newCoord, new block (blockType.tempPlat, newCoord, 0, index, false));
         }
 
         newObj.GetComponent<SpriteRenderer>().sprite = this.GetComponent<extraSprites>().tempPlat[index];
@@ -935,7 +935,7 @@ public class editorController : MonoBehaviour
     void placeTwoStateRed(int x, int y, GameObject newObj, bool playerPlaced){
         coordinate2D newCoord = new coordinate2D (x, y);
         if(playerPlaced){
-            currentLvl.blocks.Add(newCoord, new block (blockType.blueBlock, newCoord, 0, 0, false));
+            currentLvl.blocks.Add(newCoord, new block (blockType.redBlock, newCoord, 0, 0, false));
         }
 
         newObj.GetComponent<SpriteRenderer>().sprite = this.GetComponent<extraSprites>().blockRed;
@@ -1056,23 +1056,41 @@ public class editorController : MonoBehaviour
             placeSelected = (int)mode.block;
             if(block.Value.type == blockType.block){
                 Place(block.Value.placePos.x, block.Value.placePos.y, false);
-            }
+            } else
             if(block.Value.type == blockType.spawn && block.Value.coreTile){
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(otherObjects[0], new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion());
-            }
+            } else
             if(block.Value.type == blockType.button && block.Value.coreTile){
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(otherObjects[1], new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion());
-            }
+            } else
             if(block.Value.type == blockType.door && block.Value.coreTile){
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(otherObjects[2], new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion());
-            }
+            } else
             if(block.Value.type == blockType.platform){
                 placeSelected = (int)mode.platform;
                 Place(block.Value.placePos.x, block.Value.placePos.y, false);
-            }
+            } else
             if(block.Value.type == blockType.obstacle){
                 placeSelected = (int)mode.obstacle;
                 Place(block.Value.placePos.x, block.Value.placePos.y, false);
+            } else
+            if(block.Value.type == blockType.tempPlat){
+                placeSelected = (int)mode.tempBlock;
+                Place(block.Value.placePos.x, block.Value.placePos.y, false);
+            } else
+            if(block.Value.type == blockType.blueBlock){
+                placeSelected = (int)mode.blueBlock;
+                Place(block.Value.placePos.x, block.Value.placePos.y, false);
+            } else
+            if(block.Value.type == blockType.redBlock){
+                placeSelected = (int)mode.redBlock;
+                Place(block.Value.placePos.x, block.Value.placePos.y, false);
+            } else
+            if(block.Value.type == blockType.twoStateButton && block.Value.coreTile){
+                placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(otherObjects[3], new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion());
+            } else
+            if(block.Value.type == blockType.twoStateLever && block.Value.coreTile){
+                placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(otherObjects[4], new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion());
             }
         }
         loadingLevel = false;

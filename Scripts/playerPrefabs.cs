@@ -10,6 +10,11 @@ public static class playerPrefabs
     public static GameObject spawn = Resources.Load<GameObject>("spawn");
     public static GameObject button = Resources.Load<GameObject>("button");
     public static GameObject door = Resources.Load<GameObject>("door");
+    public static GameObject tempBlock = Resources.Load<GameObject>("tempBlock");
+    public static GameObject twoStateRed = Resources.Load<GameObject>("twoStateBlockRed");
+    public static GameObject twoStateBlue = Resources.Load<GameObject>("twoStateBlockBlue");
+    public static GameObject twoStateButton = Resources.Load<GameObject>("twoStateButton");
+    public static GameObject twoStateLever = Resources.Load<GameObject>("twoStateLever");
 
     /*void Awake(){
         block = Resources.Load<GameObject>("block");

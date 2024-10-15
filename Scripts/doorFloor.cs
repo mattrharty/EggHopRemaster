@@ -1,16 +1,19 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.U2D;
 
 public class doorFloor : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+
+    public Sprite[] states;
+    bool done = false;
 
     // Update is called once per frame
     void Update()
     {
-        
+        if(buttonDoor.pressed && !done){
+            done = true;
+            this.GetComponent<SpriteRenderer>().sprite = states[1];
+        }
     }
 }

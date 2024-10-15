@@ -48,4 +48,8 @@ public class menuManager : MonoBehaviour
         levelTemp.levelPlaying = levelTemp.currentLvl;
     } 
 
+    void Start(){
+        Time.timeScale = 1;
+    }
+
 }

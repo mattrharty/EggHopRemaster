@@ -1,16 +1,22 @@
+using System.Collections;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 public class flash : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
+
+    public Color flashColor;
+    public Material flashMat;
+
+    public void bling(){
+        StartCoroutine(Woosh());
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+    IEnumerator Woosh(){
+        Material ogMat = this.GetComponent<SpriteRenderer>().material;
+        this.GetComponent<SpriteRenderer>().material = flashMat;
+        yield return new WaitForSeconds(0.17f);
+        this.GetComponent<SpriteRenderer>().material = ogMat;
     }
+
 }

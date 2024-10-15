@@ -216,6 +216,21 @@ public class levelPlayer : MonoBehaviour
             if(block.Value.type == blockType.obstacle){
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.spike, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), spikeDaddy);
             }
+            if(block.Value.type == blockType.tempPlat){
+                placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.tempBlock, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), blockDaddy);
+            }
+            if(block.Value.type == blockType.blueBlock){
+                placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.twoStateBlue, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), blockDaddy);
+            }
+            if(block.Value.type == blockType.redBlock){
+                placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.twoStateRed, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), blockDaddy);
+            }
+            if(block.Value.type == blockType.twoStateButton && block.Value.coreTile){
+                placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.twoStateButton, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), blockDaddy);
+            }
+            if(block.Value.type == blockType.twoStateLever && block.Value.coreTile){
+                placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.twoStateLever, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), blockDaddy);
+            }
         }
 
         levelTemp.levelPlaying = currentLvl;
@@ -446,6 +461,14 @@ public class levelPlayer : MonoBehaviour
                     placedBlocks[x, y].GetComponent<BoxCollider2D>().size = new Vector2 (1, 1);
                     placedBlocks[x, y].GetComponent<BoxCollider2D>().offset = new Vector2 (0, 0);
                 }
+            } else if (currentLvl.blocks[new coordinate2D (x, y)].type == blockType.tempPlat) {
+                int n = Math.Abs((Mathf.RoundToInt(x / (float)Math.PI) * Mathf.RoundToInt(currentLvl.seed / 17)) + (Mathf.RoundToInt(y * (float)Math.PI) * Mathf.RoundToInt(currentLvl.seed / 19))) + x * y;
+                int index = Mathf.RoundToInt(n / 10) % 3;
+
+                SpriteRenderer sr = placedBlocks[x, y].transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>();
+                placedBlocks[x, y].transform.GetChild(0).GetComponent<tempPlatform>().type = index;
+                Debug.Log(index);
+                sr.sprite = this.GetComponent<extraSprites>().tempPlat[index];
             }}}
         }
     }

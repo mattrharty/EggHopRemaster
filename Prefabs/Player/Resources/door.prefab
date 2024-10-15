@@ -120,6 +120,8 @@ GameObject:
   m_Component:
   - component: {fileID: 6742216536099432980}
   - component: {fileID: 3375015142709653793}
+  - component: {fileID: 3644224651249752498}
+  - component: {fileID: 2728440695662703902}
   m_Layer: 0
   m_Name: floor thing
   m_TagString: Untagged
@@ -136,7 +138,7 @@ Transform:
   m_GameObject: {fileID: 4889980732941143807}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.9, z: 0}
+  m_LocalPosition: {x: 0, y: -0.8, z: 0}
   m_LocalScale: {x: 0.8333333, y: 0.83333, z: 0.83333}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -185,7 +187,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 2
   m_Sprite: {fileID: -5318240890550080839, guid: baef3adcebde68444a1da54d84dc9890, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -197,6 +199,35 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &3644224651249752498
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4889980732941143807}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 065cb9bec65996e43899b4d94294e8e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  states:
+  - {fileID: -5318240890550080839, guid: baef3adcebde68444a1da54d84dc9890, type: 3}
+  - {fileID: 594345005, guid: baef3adcebde68444a1da54d84dc9890, type: 3}
+--- !u!114 &2728440695662703902
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4889980732941143807}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96a21ed4190b48641bf6af26dcbc09df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  flashColor: {r: 1, g: 1, b: 1, a: 1}
+  flashMat: {fileID: 2100000, guid: 9a459c4274749914e8a3c25bada6dc25, type: 2}
 --- !u!1 &7093473331813946633
 GameObject:
   m_ObjectHideFlags: 0
@@ -245,6 +276,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41d570261ae80244e8713f7aeeef8790, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  pressed: 0
   type: 3
   state:
   - {fileID: 566525177, guid: d0975e08c8e355a48b29c5a5a8966a62, type: 3}

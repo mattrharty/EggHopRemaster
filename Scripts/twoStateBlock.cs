@@ -36,6 +36,7 @@ public class twoStateBlock : MonoBehaviour
     {
         if (local != lvl.twoStateGlobal)
         {
+            this.GetComponent<flash>().bling();
             local = lvl.twoStateGlobal;
             setSprite();
         }

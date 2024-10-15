@@ -2764,6 +2764,7 @@ GameObject:
   - component: {fileID: 1448389407}
   - component: {fileID: 1448389410}
   - component: {fileID: 1448389409}
+  - component: {fileID: 1448389411}
   m_Layer: 0
   m_Name: levelManager
   m_TagString: levelManager
@@ -2937,6 +2938,26 @@ MonoBehaviour:
   bottom: {fileID: -2014037800, guid: ad188c80aab8c1849a3f584082225310, type: 3}
   top: {fileID: -548624237, guid: ad188c80aab8c1849a3f584082225310, type: 3}
   general: {fileID: -573549281, guid: ad188c80aab8c1849a3f584082225310, type: 3}
+--- !u!114 &1448389411
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1448389406}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a04f416e480be114a9ac7d4549fb5ca4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tempPlat:
+  - {fileID: 8064110561615791171, guid: f2befcacf5a65204f8e8b72c86e3c5b4, type: 3}
+  - {fileID: 3452901685940334595, guid: f2befcacf5a65204f8e8b72c86e3c5b4, type: 3}
+  - {fileID: -2868032079035221399, guid: f2befcacf5a65204f8e8b72c86e3c5b4, type: 3}
+  blockRed: {fileID: 1999327530221507914, guid: 20d6b033e6c60e948811952755d6a55c, type: 3}
+  blockBlue: {fileID: -388050213, guid: 20d6b033e6c60e948811952755d6a55c, type: 3}
+  twoStateButton: {fileID: 409118245641930112, guid: 6a8ff1566765d8d43a1933226f50c599, type: 3}
+  twoStateLever: {fileID: 4733514731201448287, guid: aaaa305984b49ab4f93d2811cca81c03, type: 3}
 --- !u!1 &1451211834
 GameObject:
   m_ObjectHideFlags: 0
