@@ -5,6 +5,7 @@ public class tempPlatform : MonoBehaviour
 {
     Animator anim;
     Vector3 initPos;
+    bool fallin = false;
     [SerializeField] float time = 2.5f;
     [SerializeField] float resetTime = 0f;
     [SerializeField] [Range(0, 2)] public int type;
@@ -19,8 +20,9 @@ public class tempPlatform : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D thing)
     {
-        if (thing.gameObject.tag == "goose" || thing.gameObject.tag == "egg")
+        if ((thing.gameObject.tag == "goose" || thing.gameObject.tag == "egg") && !fallin)
         {
+            fallin = true;
             float initTime = Time.fixedTime;
             Vector3 basePos = transform.GetChild(0).position;
             
@@ -31,20 +33,21 @@ public class tempPlatform : MonoBehaviour
     IEnumerator shake (float initTime, Vector3 basePos){
         while (Time.fixedTime - initTime < time)
         {
-            float shake = 0.015f * Mathf.Sin(36 * (Time.fixedTime - initTime));
+            float shake = 0.025f * Mathf.Sin(36 * (Time.fixedTime - initTime));
             transform.GetChild(0).position = new Vector3(basePos.x, basePos.y + shake, basePos.z);
             yield return new WaitForEndOfFrame();
         }
 
         transform.GetChild(0).position = basePos;
-        anim.enabled = true;
         anim.SetTrigger("fall");
+        anim.enabled = true;
         StartCoroutine(fall());
     }
 
     IEnumerator fall()
     {
-        yield return new WaitUntil(() => transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().color.a == 0);
+        Debug.Log("falling");
+        yield return new WaitUntil(() => transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().color.a <= 0.1f);
         anim.enabled = false;
         transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 0);
         foreach(BoxCollider2D box in this.GetComponents<BoxCollider2D>()){

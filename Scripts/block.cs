@@ -18,7 +18,8 @@ public class block
     public int blockVer;
     public int activeState;
     public bool coreTile;
-    public List<string> tags;
+    public string levelName;
+    public Dictionary<string, string> tags;
 
     public block (blockType type, coordinate2D placePos, double rot, int blockVer, bool coreTile){
         this.type = type;
@@ -36,6 +37,12 @@ public class levelData{
     public int[] size;
     public int seed;
     public int eggCount;
+    public byte[] thumbnail;
+    public string levelID;
+    public string title;
+    public string description = "";
+    public List<string> tags;
+    public int theme = 0;
 
 
     public block getTile(blockType type) {
@@ -191,6 +198,9 @@ public enum blockType {
     slime,
     blueBlock,
     redBlock,
+    blueSpike,
+    redSpike,
     column,
-
+    movingNode,
+    movingPlat
 }

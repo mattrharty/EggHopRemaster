@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class menuManager : MonoBehaviour
 {
@@ -33,7 +34,7 @@ public class menuManager : MonoBehaviour
         GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().playTrans(false, 0);
         yield return new WaitUntil(() => GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().anims[0].GetCurrentAnimatorStateInfo(0).normalizedTime < 1);
         yield return new WaitUntil(() => GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().anims[0].GetCurrentAnimatorStateInfo(0).normalizedTime >= 1);
-        SceneManager.LoadScene("level editor");
+        SceneManager.LoadScene("Level Library");
     }
 
     public IEnumerator quitDif(){
@@ -50,6 +51,7 @@ public class menuManager : MonoBehaviour
 
     void Start(){
         Time.timeScale = 1;
+        GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().playTrans(true, 0);
     }
 
 }

@@ -1,9 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 public class transitions : MonoBehaviour
 {
+
+    EventSystem system;
+    Scene lastScene;
 
     public List<Animator> anims;
     /*
@@ -26,6 +31,23 @@ public class transitions : MonoBehaviour
         } else {
             anims[anim].SetTrigger("close");
             anims[anim].transform.rotation = new Quaternion (0, 0, 0, 0);
+        }
+    }
+
+    void Start(){
+        lastScene = SceneManager.GetActiveScene();
+        system = EventSystem.current;
+    }
+
+    void Update(){
+        if(lastScene != SceneManager.GetActiveScene()){
+            lastScene = SceneManager.GetActiveScene();
+            system = EventSystem.current;
+        }
+        if(anims[0].GetCurrentAnimatorStateInfo(0).normalizedTime < 1){
+            system.enabled = false;
+        } else {
+            system.enabled = true;
         }
     }
 

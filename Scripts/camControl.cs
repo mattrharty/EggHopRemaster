@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 public class camControl : MonoBehaviour
@@ -55,10 +56,14 @@ public class camControl : MonoBehaviour
         Vector3 newPos = new Vector3();
         if(!rightClick.IsPressed()){
             dragging = false;
-            newPos = new Vector3 (
-                camSpeed * Time.deltaTime * GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>().axis.x,
-                camSpeed * Time.deltaTime * GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>().axis.y,
-                0); 
+            if(EventSystem.current != null){
+                if(!EventSystem.current.isFocused){
+                    newPos = new Vector3 (
+                        camSpeed * Time.deltaTime * GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>().axis.x,
+                        camSpeed * Time.deltaTime * GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>().axis.y,
+                        0);
+                } 
+            }
         } else {
             diffX = 0f;
             diffY = 0f;

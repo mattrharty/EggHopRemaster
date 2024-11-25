@@ -7,6 +7,8 @@ public class extraSprites : MonoBehaviour
     
     public Sprite blockRed;
     public Sprite blockBlue;
+    public Sprite spikeRed;
+    public Sprite spikeBlue;
     public Sprite twoStateButton;
     public Sprite twoStateLever;
 

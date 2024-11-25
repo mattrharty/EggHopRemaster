@@ -11,6 +11,7 @@ public class buttonDoor : MonoBehaviour
 
     public blockType type;
     public List<Sprite> state;
+    levelPlayer lvl;
     SpriteRenderer sr;
     Animator anim;
 
@@ -23,6 +24,8 @@ public class buttonDoor : MonoBehaviour
 
         sr = transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>();
         sr.sprite = state[0];
+
+        lvl = GameObject.Find("levelManager").GetComponent<levelPlayer>();
 
         if(type == blockType.door){
             anim = transform.GetChild(0).gameObject.GetComponent<Animator>();
@@ -37,10 +40,10 @@ public class buttonDoor : MonoBehaviour
     void Update(){
         if(type == blockType.door){
             anim.SetBool("pressed", pressed);
-
             if(goose != null){
                 if(sr.sprite == state[2]){
                     goose.enabled = false;
+                    lvl.Finish();
                 }
             }
         }
@@ -61,10 +64,12 @@ public class buttonDoor : MonoBehaviour
         //Debug.Log(obj);
         if (type == blockType.door && obj.gameObject.tag == "goose"){
             if(pressed && obj.transform.parent.gameObject.GetComponent<PlayerMovement>().grounded > 0 && Mathf.Abs(obj.transform.parent.gameObject.GetComponent<PlayerMovement>().rb.linearVelocity.y) < 0.01f){
-                goose = obj.gameObject.GetComponent<SpriteRenderer>();
+                goose = obj.transform.parent.gameObject.GetComponent<SpriteRenderer>();
                 anim.SetBool("exit", true);
-                obj.gameObject.GetComponent<PlayerMovement>().rb.linearVelocity = new Vector2 (0, 0);
-                obj.gameObject.GetComponent<PlayerMovement>().enabled = false;
+                obj.transform.parent.gameObject.GetComponent<PlayerMovement>().rb.linearVelocity = new Vector2 (0, 0);
+                obj.transform.parent.gameObject.GetComponent<PlayerMovement>().enabled = false;
+                obj.transform.parent.gameObject.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Static;
+                obj.gameObject.GetComponent<BoxCollider2D>().enabled = false;
             }
         }
     }

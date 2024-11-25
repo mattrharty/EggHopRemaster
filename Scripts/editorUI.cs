@@ -22,6 +22,8 @@ public class editorUI : MonoBehaviour
     public List<coordinate2D> thumbnailSize;
     public List<Sprite> blueRedBlocks;
     public Image blueRedBlock;
+    public List<Sprite> blueRedSpikes;
+    public Image blueRedSpike;
 
     public editorController edit;
     GameObject pauseMenu;
@@ -40,6 +42,14 @@ public class editorUI : MonoBehaviour
                 edit.placeSelected = (int)mode.redBlock;
             } else {
                 edit.placeSelected = (int)mode.blueBlock;
+            }
+        }
+
+        if(edit.placeSelected == (int)mode.redSpike || edit.placeSelected == (int)mode.blueSpike){
+            if(edit.redSelect){
+                edit.placeSelected = (int)mode.redSpike;
+            } else {
+                edit.placeSelected = (int)mode.blueSpike;
             }
         }
     }
@@ -74,6 +84,13 @@ public class editorUI : MonoBehaviour
         }
         blueRedBlock.sprite = blockSelect[8];
 
+        if(edit.redSelect){
+            blockSelect[12] = blueRedSpikes[0];
+        } else {
+            blockSelect[12] = blueRedSpikes[1];
+        }
+        blueRedSpike.sprite = blockSelect[12];
+
 
         ribbon.sprite = blockSelect[edit.placeSelected];
         ribbon.gameObject.transform.localScale = new Vector3 (thumbnailSize[edit.placeSelected].x / 100f, thumbnailSize[edit.placeSelected].y / 100f, 1f);
@@ -103,7 +120,15 @@ public class editorUI : MonoBehaviour
     }
 
     public void mainMenu(){
-        SceneManager.LoadScene("Main Menu");
+        esc.Disable();
+        StartCoroutine(loadMain());
+    }
+
+    IEnumerator loadMain(){
+        GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().playTrans(false, 0);
+        yield return new WaitUntil(() => GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().anims[0].GetCurrentAnimatorStateInfo(0).normalizedTime < 1);
+        yield return new WaitUntil(() => GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().anims[0].GetCurrentAnimatorStateInfo(0).normalizedTime >= 1);
+        SceneManager.LoadScene("level editor");
     }
 
 }

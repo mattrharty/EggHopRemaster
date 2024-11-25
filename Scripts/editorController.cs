@@ -11,6 +11,11 @@ using SFB;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
 using UnityEngine.SceneManagement;
+using System.Text;
+using System.Collections;
+using UnityEngine.Rendering;
+using Unity.VisualScripting.FullSerializer;
+using System.Linq;
 
 public class editorController : MonoBehaviour
 {
@@ -34,7 +39,8 @@ public class editorController : MonoBehaviour
     public int maxSizeNum = 256;
     public TMP_InputField xField;
     public TMP_InputField yField;
-    public TMP_InputField seedField;   public int[] mousePos = {0,0};
+    public TMP_InputField seedField;
+    public int[] mousePos = {0,0};
     public GameObject tileCursor;
     public Sprite[] cursorPics;
     public Color[] cursorColors;
@@ -85,6 +91,8 @@ public class editorController : MonoBehaviour
     w1OneWay oneWays;
 
     int rotate = 0;
+
+    [SerializeField] Image snapshot;
 
     public TMP_Text versionDis;
     string loadPath;
@@ -156,15 +164,13 @@ public class editorController : MonoBehaviour
         blueRed.interactable = false;
         blueRed.isOn = redSelect;
 
-        currentLvl = new levelData ();
-        currentLvl.blocks = new Dictionary<coordinate2D, block>();
-        currentLvl.occupiedTiles = new List<coordinate2D> ();
+        oneWays = this.GetComponent<w1OneWay>();
+
+        Load(versionDis);
 
         gridReload();
 
         versionDis.text = "Egg Hop " + Application.version;
-
-        oneWays = this.GetComponent<w1OneWay>();
     }
 
     void hotkey(Button toolButton){
@@ -445,7 +451,15 @@ public class editorController : MonoBehaviour
 
         leftClick.Disable();
         esc.Disable();
-        SceneManager.LoadScene("Main Menu");
+        Time.timeScale = 1;
+        StartCoroutine(library());
+    }
+
+    public System.Collections.IEnumerator library(){
+        GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().playTrans(false, 0);
+        yield return new WaitUntil(() => GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().anims[0].GetCurrentAnimatorStateInfo(0).normalizedTime < 1);
+        yield return new WaitUntil(() => GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().anims[0].GetCurrentAnimatorStateInfo(0).normalizedTime >= 1);
+        SceneManager.LoadScene("Level Library");
     }
 
     void fill(){
@@ -496,7 +510,9 @@ public class editorController : MonoBehaviour
             placeSelected == (int)mode.obstacle ||
             placeSelected == (int)mode.tempBlock ||
             placeSelected == (int)mode.redBlock ||
-            placeSelected == (int)mode.blueBlock){
+            placeSelected == (int)mode.blueBlock ||
+            placeSelected == (int)mode.redSpike ||
+            placeSelected == (int)mode.blueSpike){
                 return true;
         } else {
             return false;
@@ -750,20 +766,15 @@ public class editorController : MonoBehaviour
         string newLog = "";
         newLog = "";
         if(!spawnPlaced || !buttonPlaced || !doorPlaced){
-            log.color = cursorColors[0];
-            if(!spawnPlaced){
-                newLog += "spawn is missing\n";
-                flashButton(buttons[2].gameObject);
-            } if(!buttonPlaced){
-                newLog += "button is missing\n";
-                flashButton(buttons[3].gameObject);
-            } if(!doorPlaced){
-                newLog += "door is missing\n";
-                flashButton(buttons[4].gameObject);
+            if(currentLvl.tags.Count == 0){
+               currentLvl.tags.Add("unplayable"); 
+            } else if(!currentLvl.tags.Contains("unplayable")){
+                currentLvl.tags.Add("unplayable");
             }
-            //Debug.Log(newLog + spawnPlaced + ", " + buttonPlaced + ", " + doorPlaced);
-            log.text = newLog;
-            return;
+        } else {
+            if(currentLvl.tags.Contains("unplayable")){
+                currentLvl.tags.Remove("unplayable");
+            }
         }
 
         /*string saveLoc = Application.persistentDataPath;
@@ -781,32 +792,54 @@ public class editorController : MonoBehaviour
         }*/
         if(levelName.text.Length > 0){
             saveName = levelName.text;
+            currentLvl.title = levelName.text;
         }
 
         //Common.DownloadFileHelper.DownloadToFile(content, saveName);
-        var extensionList = new [] {
-            new ExtensionFilter("Level", "goose"),
-            //new ExtensionFilter("Text", "txt"),
-            new ExtensionFilter("All files", "*")
-        };
-        string path = "";
+        string path = Application.persistentDataPath + "/Custom Levels/" + currentLvl.levelID + ".goose";
+        
         currentLvl.size = size;
-        #if !UNITY_WEBGL
-            path = StandaloneFileBrowser.SaveFilePanel("Save custom level", "", saveName, extensionList);
-        #endif
-        if(path == "" || path == null){
+        StartCoroutine(finishLoad(path));
+
+        /*if(path == "" || path == null){
             newLog = "No download path selected";
             log.color = cursorColors[0];
             log.text = newLog;
         }
-        File.WriteAllText(path, JsonConvert.SerializeObject(currentLvl));
 
         levelTemp.currentLvl = currentLvl;
         levelTemp.levelPlaying = currentLvl;
 
         newLog = "Saved " + path;
         log.color = cursorColors[1];
-        log.text = newLog;
+        log.text = newLog;*/
+    }
+
+    IEnumerator finishLoad(string path){
+        Camera.allCameras[1].transform.position = Camera.main.transform.position;
+        Camera.allCameras[1].orthographicSize = Camera.main.orthographicSize;
+        yield return new WaitForEndOfFrame();
+
+        RenderTexture rt = new RenderTexture(Screen.width, Screen.height, 24);
+        Camera.allCameras[1].targetTexture = rt;
+        Texture2D newTex = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
+        Camera.allCameras[1].Render();
+        RenderTexture.active = rt;
+        newTex.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
+        Camera.allCameras[1].targetTexture = null;
+        RenderTexture.active = Camera.main.activeTexture;
+        Destroy(rt);
+        currentLvl.thumbnail = newTex.EncodeToJPG();
+        newTex.LoadImage(currentLvl.thumbnail);
+        snapshot.transform.parent.GetComponent<RectTransform>().sizeDelta = new Vector2(Screen.width, Screen.height);
+        snapshot.sprite = Sprite.Create(newTex, new Rect(0, 0, newTex.width, newTex.height), new Vector2 (0.5f, 0.5f));
+        snapshot.transform.parent.GetComponent<Animator>().SetTrigger("snap");
+
+        File.WriteAllText(path, JsonConvert.SerializeObject(currentLvl, Formatting.Indented, new JsonSerializerSettings()
+                        { 
+                            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                        }),
+                        Encoding.UTF8);
     }
 
     public void setFullscreen(Toggle fullscreen){
@@ -866,6 +899,10 @@ public class editorController : MonoBehaviour
             placeTwoStateBlue(x, y, newBlock, playerPlaced);
         } else if (placeSelected == (int)mode.redBlock){
             placeTwoStateRed(x, y, newBlock, playerPlaced);
+        } else if (placeSelected == (int)mode.blueSpike){
+            placeBlueDeath(x, y, newBlock, playerPlaced);
+        } else if (placeSelected == (int)mode.redSpike){
+            placeRedDeath(x, y, newBlock, playerPlaced);
         }
 
         newBlock.GetComponent<SpriteRenderer>().sortingOrder = -1;
@@ -942,6 +979,25 @@ public class editorController : MonoBehaviour
         newObj.name = "Placed Obstacle";
     }
 
+    void placeRedDeath(int x, int y, GameObject newObstacle, bool playerPlaced){
+        coordinate2D newCoord = new coordinate2D (x, y);
+        if(playerPlaced){
+            currentLvl.blocks.Add(newCoord, new block (blockType.redSpike, newCoord, 0, 0, false));
+        }
+
+        newObstacle.GetComponent<SpriteRenderer>().sprite = this.GetComponent<extraSprites>().spikeRed;
+        newObstacle.name = "Placed Obstacle";
+    }
+
+    void placeBlueDeath(int x, int y, GameObject newObstacle, bool playerPlaced){
+        coordinate2D newCoord = new coordinate2D (x, y);
+        if(playerPlaced){
+            currentLvl.blocks.Add(newCoord, new block (blockType.blueSpike, newCoord, 0, 0, false));
+        }
+
+        newObstacle.GetComponent<SpriteRenderer>().sprite = this.GetComponent<extraSprites>().spikeBlue;
+        newObstacle.name = "Placed Obstacle";
+    }
 
     void erase(int x, int y){ 
         if (currentLvl.getTile(x, y) == null || !tileCursor.activeSelf){
@@ -1001,7 +1057,7 @@ public class editorController : MonoBehaviour
     //Open file select prompt and loads the level in that file
     public void Load(TMP_Text log){
         //Gets the path to the level
-        var extensions = new [] {
+        /*var extensions = new [] {
             new ExtensionFilter("levels", "txt", "goose"),
             new ExtensionFilter("All Files", "*" ),
         };
@@ -1025,10 +1081,10 @@ public class editorController : MonoBehaviour
             return;
         }
         log.color = cursorColors[1];
-        log.text = "loading " + path;
+        log.text = "loading " + path;*/
 
         //Converts custom level to string
-        currentLvl = JsonConvert.DeserializeObject<levelData>(File.ReadAllText(path));
+        currentLvl = GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>().currentLvl;
 
         //Clears all currently placed blocks
         for(int x = 0; x < size[0]; x++){
@@ -1036,6 +1092,8 @@ public class editorController : MonoBehaviour
                 GameObject.Destroy(placedBlocks[x, y]);
             }
         }
+
+        levelName.text = currentLvl.title;
 
         //Reads and interprets the level size
         size = currentLvl.size;
@@ -1086,6 +1144,14 @@ public class editorController : MonoBehaviour
                 placeSelected = (int)mode.redBlock;
                 Place(block.Value.placePos.x, block.Value.placePos.y, false);
             } else
+            if(block.Value.type == blockType.blueSpike){
+                placeSelected = (int)mode.blueSpike;
+                Place(block.Value.placePos.x, block.Value.placePos.y, false);
+            } else
+            if(block.Value.type == blockType.redSpike){
+                placeSelected = (int)mode.redSpike;
+                Place(block.Value.placePos.x, block.Value.placePos.y, false);
+            } else
             if(block.Value.type == blockType.twoStateButton && block.Value.coreTile){
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(otherObjects[3], new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion());
             } else
@@ -1096,7 +1162,7 @@ public class editorController : MonoBehaviour
         loadingLevel = false;
 
         gridReload();
-        log.text = "Successfully loaded " + path;
+        //log.text = "Successfully loaded " + path;
     }
 
     public void selectTool(int select){
@@ -1128,9 +1194,20 @@ public class editorController : MonoBehaviour
                 placeSelected = (int)mode.blueBlock;
             }
         } else {
-            blueRed.interactable = false;
-            blueRed.isOn = redSelect;
+            if(select == (int)mode.redSpike){
+                blueRed.interactable = true;
+                blueRed.isOn = redSelect;
+            if(redSelect){
+                placeSelected = (int)mode.redSpike;
+            } else {
+                placeSelected = (int)mode.blueSpike;
+            }
+            } else {
+                blueRed.interactable = false;
+                blueRed.isOn = redSelect;
+            }
         }
+
     }
 
     public void selectTool2(Button button){
@@ -1163,6 +1240,7 @@ public class editorController : MonoBehaviour
                 Vector3 tilePos = new Vector3 (x, y, 0);
                 GameObject newTile = Instantiate(tilePrefab, tilePos, gridDaddy.rotation, gridDaddy);
                 newTile.GetComponent<SpriteRenderer>().sortingOrder = 1;
+                newTile.gameObject.layer = 5;
             }
         }
 
@@ -1434,6 +1512,8 @@ public enum mode{
     blueBlock = 9,
     twoStateButton = 10,
     twoStateLever = 11,
+    redSpike = 12,
+    blueSpike = 13,
 
     single = 0,
     fill = 1

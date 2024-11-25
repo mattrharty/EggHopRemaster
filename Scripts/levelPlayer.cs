@@ -11,7 +11,6 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using Unity.VisualScripting;
 using UnityEngine.UI;
-using UnityEditor.Animations;
 
 public class levelPlayer : MonoBehaviour
 {
@@ -57,9 +56,17 @@ public class levelPlayer : MonoBehaviour
 
     public Transform goos;
 
+    public int deathCount = 0;
+    float time = 0;
+
+    [SerializeField] Animator completionAnim;
+    [SerializeField] AnimationState completionAnimState;
+
     // Start is called before the first frame update
     void Start()
     {
+        completionAnim.speed = 0;
+
         oneWays = this.GetComponent<w1OneWay>();
 
         w1Columns.Add("top", w1ColTop);
@@ -83,6 +90,10 @@ public class levelPlayer : MonoBehaviour
         goos.GetComponent<PlayerMovement>().restart.performed += context => Load("", true);
     }
 
+    void Update(){
+        time += Time.deltaTime;
+    }
+
     public void pause(bool paused){
         //pauseMenu = GameObject.Find("Pause");
         pauseMenu.SetActive(paused);
@@ -100,7 +111,21 @@ public class levelPlayer : MonoBehaviour
 
         esc.Disable();
         Time.timeScale = 1;
-        SceneManager.LoadScene("Main Menu");
+        StartCoroutine(library());
+    }
+
+    public System.Collections.IEnumerator library(){
+        GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().playTrans(false, 0);
+        yield return new WaitUntil(() => GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().anims[0].GetCurrentAnimatorStateInfo(0).normalizedTime < 1);
+        yield return new WaitUntil(() => GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().anims[0].GetCurrentAnimatorStateInfo(0).normalizedTime >= 1);
+        SceneManager.LoadScene("Level Library");
+    }
+
+    public System.Collections.IEnumerator replay(){
+        GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().playTrans(false, 0);
+        yield return new WaitUntil(() => GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().anims[0].GetCurrentAnimatorStateInfo(0).normalizedTime < 1);
+        yield return new WaitUntil(() => GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().anims[0].GetCurrentAnimatorStateInfo(0).normalizedTime >= 1);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     public void setFullscreen(Toggle fullscreen){
@@ -154,11 +179,7 @@ public class levelPlayer : MonoBehaviour
         Time.timeScale = 0;
         //Converts custom level to string
         if(firstLoad){
-            if(levelTemp.levelPlaying != null){
-                currentLvl = levelTemp.levelPlaying;
-            } else {
-                currentLvl = levelTemp.currentLvl;
-            }
+            currentLvl = GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>().currentLvl;
         } else {
             currentLvl = JsonConvert.DeserializeObject<levelData>(File.ReadAllText(path));
         }
@@ -225,6 +246,12 @@ public class levelPlayer : MonoBehaviour
             if(block.Value.type == blockType.redBlock){
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.twoStateRed, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), blockDaddy);
             }
+            if(block.Value.type == blockType.blueSpike){
+                placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.twoStateSpikeBlue, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), spikeDaddy);
+            }
+            if(block.Value.type == blockType.redSpike){
+                placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.twoStateSpikeRed, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), spikeDaddy);
+            }
             if(block.Value.type == blockType.twoStateButton && block.Value.coreTile){
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.twoStateButton, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), blockDaddy);
             }
@@ -246,6 +273,7 @@ public class levelPlayer : MonoBehaviour
         goos.gameObject.GetComponent<PlayerMovement>().eggCount = currentLvl.eggCount;
         goos.gameObject.GetComponent<PlayerMovement>().ones.SetTrigger("reset");
         goos.gameObject.GetComponent<PlayerMovement>().tens.SetTrigger("reset");
+        twoStateGlobal = twoState.red;
         if(currentLvl.eggCount <= 0){
             goos.gameObject.GetComponent<PlayerMovement>().eggCounterDaddy.SetActive(false);
         } else {
@@ -256,6 +284,8 @@ public class levelPlayer : MonoBehaviour
     }
 
     public IEnumerator resetPlayerPos(){
+        time = 0;
+
         goos.gameObject.GetComponent<PlayerMovement>().eggCooldown = true;
         goos.gameObject.GetComponent<PlayerMovement>().enabled = false;
         goos.transform.GetChild(0).gameObject.GetComponent<BoxCollider2D>().enabled = false;
@@ -267,6 +297,7 @@ public class levelPlayer : MonoBehaviour
         //goos.gameObject.GetComponent<SpriteRenderer>().enabled = false;
         goos.position = new Vector3(currentLvl.getTile(blockType.spawn, true).placePos.x, currentLvl.getTile(blockType.spawn, true).placePos.y, 0);
         yield return new WaitForSeconds(1.0f);
+        deathCount++;
         Load("", true);
     }
 
@@ -545,6 +576,44 @@ public class levelPlayer : MonoBehaviour
             BoxCollider2D deathZone = newBorderBlock.AddComponent<BoxCollider2D>();
             deathZone.isTrigger = true;
         }
+    }
+
+    public void Finish(){
+        if(completionAnim.speed == 1){
+            return;
+        }
+        goos.gameObject.GetComponent<PlayerMovement>().restart.Disable();
+        completionAnim.speed = 1;
+
+        string path = Application.persistentDataPath + "/Custom Levels/";
+        makerProfile profile = JsonConvert.DeserializeObject<makerProfile>(File.ReadAllText(path + "makerProfile.json"));
+        profile.clearedLvls[currentLvl.levelID] = true;
+        File.WriteAllText(path + "makerProfile.json", JsonConvert.SerializeObject(profile, Formatting.Indented), System.Text.Encoding.UTF8);
+
+        completionAnim.transform.GetChild(4).GetComponent<TMP_Text>().text = "\n" + currentLvl.title + "\n" + "\n";
+        if(!completionAnim.transform.GetChild(4).GetComponent<TMP_Text>().isTextOverflowing){
+            completionAnim.transform.GetChild(4).GetComponent<TMP_Text>().text += "\n";
+        }
+        int t = Mathf.RoundToInt(time);
+        string hours = Mathf.Floor(t / 3600).ToString();
+        while(hours.Length < 2){
+            hours = "0" + hours;
+        }
+        string minutes = (Mathf.Floor(t / 60) - Mathf.Floor(t / 3600) * 60).ToString();
+        while(minutes.Length < 2){
+            minutes = "0" + minutes;
+        }
+        string seconds = (Mathf.Floor(t) - Mathf.Floor(t / 60) * 60).ToString();
+        while(seconds.Length < 2){
+            seconds = "0" + seconds;
+        }
+
+        completionAnim.transform.GetChild(4).GetComponent<TMP_Text>().text += hours + ":" + minutes + ":" + seconds;
+        completionAnim.transform.GetChild(4).GetComponent<TMP_Text>().text += "\n" + "\n" + (deathCount / 3).ToString();
+    }
+
+    public void Replay(){
+        StartCoroutine(replay());
     }
 
     public twoState otherState(){

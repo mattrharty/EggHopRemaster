@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 public class gameManager : MonoBehaviour
 {
     public TextAsset defaultLvl;
+    public levelData currentLvl;
     public Vector2 axis;
 
     void Awake(){

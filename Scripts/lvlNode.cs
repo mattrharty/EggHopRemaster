@@ -1,6 +1,5 @@
 using UnityEngine;
 using System;
-using UnityEditor.ShaderGraph.Internal;
 
 [ExecuteInEditMode]
 public class lvlNode : MonoBehaviour
@@ -148,13 +147,71 @@ public enum fourPt {
     right
 }
 
-public enum eightPt {
-    north,
-    northeast,
-    east,
-    southeast,
-    south,
-    southwest,
-    west,
-    northwest
+public class direction{
+    public enum eightPt {
+        north,
+        northeast,
+        east,
+        southeast,
+        south,
+        southwest,
+        west,
+        northwest
+    }
+
+    public static coordinate2D getVector(eightPt input){
+        if(input == eightPt.north){
+            return new coordinate2D(0, 1);
+        } else
+        if(input == eightPt.northeast){
+            return new coordinate2D(1, 1);
+        } else
+        if(input == eightPt.east){
+            return new coordinate2D(1, 0);
+        } else
+        if(input == eightPt.southeast){
+            return new coordinate2D(1, -1);
+        } else
+        if(input == eightPt.south){
+            return new coordinate2D(0, -1);
+        } else
+        if(input == eightPt.southwest){
+            return new coordinate2D(-1, -1);
+        } else
+        if(input == eightPt.west){
+            return new coordinate2D(-1, 0);
+        } else
+        if(input == eightPt.northwest){
+            return new coordinate2D(-1, 1);
+        }
+        return new coordinate2D(0, 0);
+    }
+
+    public static eightPt setVector(coordinate2D input){
+        if(input == new coordinate2D(0, 1)){
+            return eightPt.north;
+        } else
+        if(input == new coordinate2D(1, 1)){
+            return eightPt.northeast;
+        } else
+        if(input == new coordinate2D(1, 0)){
+            return eightPt.east;
+        } else
+        if(input == new coordinate2D(1, -1)){
+            return eightPt.southeast;
+        } else
+        if(input == new coordinate2D(0, -1)){
+            return eightPt.south;
+        } else
+        if(input == new coordinate2D(-1, -1)){
+            return eightPt.southwest;
+        } else
+        if(input == new coordinate2D(-1, 0)){
+            return eightPt.west;
+        } else
+        if(input == new coordinate2D(-1, 1)){
+            return eightPt.northwest;
+        }
+        return eightPt.north;
+    }
 }

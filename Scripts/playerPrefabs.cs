@@ -13,6 +13,8 @@ public static class playerPrefabs
     public static GameObject tempBlock = Resources.Load<GameObject>("tempBlock");
     public static GameObject twoStateRed = Resources.Load<GameObject>("twoStateBlockRed");
     public static GameObject twoStateBlue = Resources.Load<GameObject>("twoStateBlockBlue");
+    public static GameObject twoStateSpikeRed = Resources.Load<GameObject>("twoStateSpikeRed");
+    public static GameObject twoStateSpikeBlue = Resources.Load<GameObject>("twoStateSpikeBlue");
     public static GameObject twoStateButton = Resources.Load<GameObject>("twoStateButton");
     public static GameObject twoStateLever = Resources.Load<GameObject>("twoStateLever");
 
