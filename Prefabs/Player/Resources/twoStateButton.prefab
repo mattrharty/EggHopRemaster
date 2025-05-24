@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 6958159008745620708}
   - component: {fileID: 3925909472174761783}
   - component: {fileID: 3991705518626247081}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: twoStateButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -226,7 +226,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3323927484736806682}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: twoStateButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -49,6 +50,22 @@ public class camControl : MonoBehaviour
         mouseMove.Enable();
     }
 
+    bool isMouseOverUI(){
+        if(EventSystem.current != null){
+            return EventSystem.current.IsPointerOverGameObject();
+        } else return false;
+    }
+
+    bool isUISelected(){
+        if(EventSystem.current != null){
+            if(EventSystem.current.currentSelectedGameObject == null){
+                return false;
+            }
+            //Debug.Log(EventSystem.current.currentSelectedGameObject.GetComponent<TMP_InputField>() != null);
+            return EventSystem.current.currentSelectedGameObject.GetComponent<TMP_InputField>() != null;
+        } else return false;
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -56,13 +73,11 @@ public class camControl : MonoBehaviour
         Vector3 newPos = new Vector3();
         if(!rightClick.IsPressed()){
             dragging = false;
-            if(EventSystem.current != null){
-                if(!EventSystem.current.isFocused){
-                    newPos = new Vector3 (
+            if(!isUISelected()){
+                newPos = new Vector3 (
                         camSpeed * Time.deltaTime * GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>().axis.x,
                         camSpeed * Time.deltaTime * GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>().axis.y,
                         0);
-                } 
             }
         } else {
             diffX = 0f;
@@ -91,7 +106,7 @@ public class camControl : MonoBehaviour
 
         //Zooms in and out the camera
         zoom += zooom.ReadValue<float>() * 50;
-        zoom = Mathf.Clamp(zoom, -1000, 3600);
+        zoom = Mathf.Clamp(zoom, -1000, 2100);
         cam.GetComponent<Camera>().orthographicSize = Mathf.Pow(zoomScale, zoom);
 
         //Checks if the cam is out of bounds and fixes it

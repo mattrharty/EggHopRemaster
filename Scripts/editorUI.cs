@@ -110,7 +110,6 @@ public class editorUI : MonoBehaviour
     }
 
     public void pause(bool paused){
-        //pauseMenu = GameObject.Find("Pause");
         pauseMenu.SetActive(paused);
         if(paused){
             Time.timeScale = 0;

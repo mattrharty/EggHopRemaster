@@ -112,11 +112,16 @@ public class editorController : MonoBehaviour
     [SerializeField]
     Material redMat;
 
+    gameManager gm;
+
     // Start is called before the first frame update
     void Start()
     {
+        gm = GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>();
+
         xField.characterLimit = maxSize;
         yField.characterLimit = maxSize;
+        levelName.characterLimit = 100;
         xField.text = "30";
         yField.text = "30";
 
@@ -130,6 +135,8 @@ public class editorController : MonoBehaviour
         camScript.bounds[2] = 0;
         camScript.bounds[3] = 0;
         currentLvl.size = size;
+
+        placeSelected = (int)mode.block;
 
         GameObject[] buttonsObj = GameObject.FindGameObjectsWithTag("blockPanel");
         foreach(GameObject obj in buttonsObj){
@@ -179,7 +186,7 @@ public class editorController : MonoBehaviour
     }
 
     void leftClicked(){
-        if (!tileCursor.activeSelf){
+        if (!tileCursor.activeSelf || isMouseOverUI()){
             return;
         }
         bool readyToPlace = true;
@@ -365,7 +372,7 @@ public class editorController : MonoBehaviour
             //Checks to see if the placement location is valid
             for (int y = 0; y <= 1; y++){
                 try {
-                    if (currentLvl.getTile(mousePos[0], y + mousePos[1]) != null && currentLvl.getTile(mousePos[0], y + mousePos[1]).type != blockType.spawn){
+                    if (currentLvl.checkTile(mousePos[0], y + mousePos[1], mode.twoStateButton.ToString())){
                         readyToPlace = false;
                     }
                 } catch {
@@ -381,6 +388,9 @@ public class editorController : MonoBehaviour
             {
                 try
                 {
+                    if(currentLvl.checkTile(mousePos[0], y + mousePos[1])){
+                        erase(mousePos[0], y + mousePos[1]);
+                    }
                     currentLvl.occupiedTiles.Add(new coordinate2D(mousePos[0], y + mousePos[1]));
                     block newBlock = new block(blockType.twoStateButton, new coordinate2D(mousePos[0], y + mousePos[1]), 0, 0, false);
                     currentLvl.blocks.Add(newBlock.placePos, newBlock);
@@ -400,11 +410,13 @@ public class editorController : MonoBehaviour
 
             //Adds the prefab to placed blocks
             placedBlocks[mousePos[0], mousePos[1]] = newObj;
+
+            reloadBlocks();
         } else if (placeSelected == (int)mode.twoStateLever){
             //Checks to see if the placement location is valid
             for (int y = 0; y <= 1; y++){
                 try {
-                    if (currentLvl.getTile(mousePos[0], y + mousePos[1]) != null && currentLvl.getTile(mousePos[0], y + mousePos[1]).type != blockType.spawn){
+                    if (currentLvl.checkTile(mousePos[0], y + mousePos[1], mode.twoStateLever.ToString())){
                         readyToPlace = false;
                     }
                 } catch {
@@ -420,6 +432,9 @@ public class editorController : MonoBehaviour
             {
                 try
                 {
+                    if(currentLvl.checkTile(mousePos[0], y + mousePos[1])){
+                        erase(mousePos[0], y + mousePos[1]);
+                    }
                     currentLvl.occupiedTiles.Add(new coordinate2D(mousePos[0], y + mousePos[1]));
                     block newBlock = new block(blockType.twoStateLever, new coordinate2D(mousePos[0], y + mousePos[1]), 0, 0, false);
                     currentLvl.blocks.Add(newBlock.placePos, newBlock);
@@ -439,6 +454,8 @@ public class editorController : MonoBehaviour
 
             //Adds the prefab to placed blocks
             placedBlocks[mousePos[0], mousePos[1]] = newObj;
+
+            reloadBlocks();
         }
     }
 
@@ -451,6 +468,8 @@ public class editorController : MonoBehaviour
 
         leftClick.Disable();
         esc.Disable();
+        GameObject.Find("UIController").GetComponent<editorUI>().esc.Disable();
+        
         Time.timeScale = 1;
         StartCoroutine(library());
     }
@@ -508,7 +527,7 @@ public class editorController : MonoBehaviour
         if(placeSelected == (int)mode.block ||
             placeSelected == (int)mode.platform ||
             placeSelected == (int)mode.obstacle ||
-            placeSelected == (int)mode.tempBlock ||
+            placeSelected == (int)mode.tempPlat ||
             placeSelected == (int)mode.redBlock ||
             placeSelected == (int)mode.blueBlock ||
             placeSelected == (int)mode.redSpike ||
@@ -579,7 +598,7 @@ public class editorController : MonoBehaviour
                 tileCursor.GetComponent<SpriteRenderer>().color = cursorColors[0];
             }
 
-            if(currentLvl.getTile(mousePos[0], mousePos[1]) != null && placingOne() || currentLvl.getTile(mousePos[0], mousePos[1]) == null && placeSelected == (int)mode.erase){
+            if(currentLvl.checkTile(mousePos[0], mousePos[1]) && placingOne() || !currentLvl.checkTile(mousePos[0], mousePos[1]) && placeSelected == (int)mode.erase){
                 tileCursor.transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[0];
             } else if(placingOne() || placeSelected == (int)mode.erase){
                 tileCursor.transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[1];
@@ -601,7 +620,7 @@ public class editorController : MonoBehaviour
                     for (int x = -1; x <= 1; x++){
                         for (int y = 0; y <= 2; y++){
                             try {
-                                if (currentLvl.getTile(x + mousePos[0], y + mousePos[1]) == null || currentLvl.getTile(x + mousePos[0], y + mousePos[1]).type == blockType.spawn){
+                                if (!currentLvl.checkTile(x + mousePos[0], y + mousePos[1]) || currentLvl.getTile(x + mousePos[0], y + mousePos[1]).type == blockType.spawn){
                                     tileCursor.transform.GetChild(1).GetChild(y + 3 * x + 3).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[1];
                                 } else {
                                     tileCursor.transform.GetChild(1).GetChild(y + 3 * x + 3).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[0];
@@ -615,7 +634,7 @@ public class editorController : MonoBehaviour
                     for (int x = -1; x <= 1; x++){
                         for (int y = 0; y <= 0; y++){
                             try {
-                                if (currentLvl.getTile(x + mousePos[0], y + mousePos[1]) == null || currentLvl.getTile(x + mousePos[0], y + mousePos[1]).type == blockType.button){
+                                if (!currentLvl.checkTile(x + mousePos[0], y + mousePos[1]) || currentLvl.getTile(x + mousePos[0], y + mousePos[1]).type == blockType.button){
                                     tileCursor.transform.GetChild(2).GetChild(y + 1 * x + 1).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[1];
                                 } else {
                                     tileCursor.transform.GetChild(2).GetChild(y + 1 * x + 1).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[0];
@@ -629,7 +648,7 @@ public class editorController : MonoBehaviour
                     for (int x = -1; x <= 1; x++){
                         for (int y = 0; y <= 3; y++){
                             try {
-                                if (currentLvl.getTile(x + mousePos[0], y + mousePos[1]) == null || currentLvl.getTile(x + mousePos[0], y + mousePos[1]).type == blockType.door){
+                                if (!currentLvl.checkTile(x + mousePos[0], y + mousePos[1]) || currentLvl.getTile(x + mousePos[0], y + mousePos[1]).type == blockType.door){
                                     tileCursor.transform.GetChild(3).GetChild(y + 4 * x + 4).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[1];
                                 } else {
                                     tileCursor.transform.GetChild(3).GetChild(y + 4 * x + 4).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[0];
@@ -642,10 +661,14 @@ public class editorController : MonoBehaviour
                 } else if (placeSelected == (int)mode.twoStateButton || placeSelected == (int)mode.twoStateLever){
                     for (int y = 0; y <= 1; y++){
                         try {
-                            if (currentLvl.getTile(mousePos[0], y + mousePos[1]) == null || currentLvl.getTile(mousePos[0], y + mousePos[1]).type == blockType.door){
+                            if (!currentLvl.checkTile(mousePos[0], y + mousePos[1])){
                                 tileCursor.transform.GetChild(5).GetChild(y).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[1];
                             } else {
-                                tileCursor.transform.GetChild(5).GetChild(y).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[0];
+                                if(currentLvl.checkTile(mousePos[0], y + mousePos[1], ((mode)placeSelected).ToString())){
+                                    tileCursor.transform.GetChild(5).GetChild(y).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[0];
+                                } else {
+                                    tileCursor.transform.GetChild(5).GetChild(y).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[1]; 
+                                }
                             }
                         } catch {
                            tileCursor.transform.GetChild(5).GetChild(y).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[0];
@@ -655,7 +678,7 @@ public class editorController : MonoBehaviour
             }
         }
 
-        if(leftClick.IsPressed() && EventSystem.current.currentSelectedGameObject == null){
+        if(leftClick.IsPressed() && !isMouseOverUI()){
             if (placeMode == (int)mode.single){
                 if(placingOne() && tileCursor.activeSelf){
                     Place(mousePos[0], mousePos[1], true);
@@ -666,7 +689,6 @@ public class editorController : MonoBehaviour
                 }
             } else if (placeMode == (int)mode.fill){
                 if(fillX < 0){
-                    //Debug.Log("resetting fill positions");
                     fillX = mousePos[0];
                     fillY = mousePos[1];
                 }
@@ -678,7 +700,7 @@ public class editorController : MonoBehaviour
                 for (int x = Mathf.Min(fillX, mousePos[0]); x <= Mathf.Max(fillX, mousePos[0]); x++){
                     for (int y = Mathf.Min(fillY, mousePos[1]); y <= Mathf.Max(fillY, mousePos[1]); y++){
                         GameObject newBorder = Instantiate(borderPrefab, new Vector3(x, y, 0), new Quaternion(), borderDaddy);
-                        if(currentLvl.getTile(x, y) != null && placeSelected != (int)mode.erase || currentLvl.getTile(x, y) == null && placeSelected == (int)mode.erase){
+                        if(currentLvl.checkTile(x, y) && placeSelected != (int)mode.erase || !currentLvl.checkTile(x, y) && placeSelected == (int)mode.erase){
                             newBorder.GetComponent<SpriteRenderer>().color = cursorColors[0];
                         } else {
                             newBorder.GetComponent<SpriteRenderer>().color = cursorColors[1];
@@ -747,6 +769,12 @@ public class editorController : MonoBehaviour
         button.GetComponent<Image>().material = normMat;
     }
 
+    bool isMouseOverUI(){
+        if(EventSystem.current != null){
+            return EventSystem.current.IsPointerOverGameObject();
+        } else return false;
+    }
+
     //Exports the custom level to a local file
     public void Save(TMP_Text log){
         bool spawnPlaced = false;
@@ -763,8 +791,6 @@ public class editorController : MonoBehaviour
             doorPlaced = true;
         }
         log.text = "";
-        string newLog = "";
-        newLog = "";
         if(!spawnPlaced || !buttonPlaced || !doorPlaced){
             if(currentLvl.tags.Count == 0){
                currentLvl.tags.Add("unplayable"); 
@@ -777,19 +803,7 @@ public class editorController : MonoBehaviour
             }
         }
 
-        /*string saveLoc = Application.persistentDataPath;
-        if(saveLoc == null){
-            newLog = "Failed to save to Downloads folder";
-            log.color = cursorColors[0];
-            log.text = newLog;
-            return;
-        }*/
-        string saveName = "Custom Level " + DateTime.Now.TimeOfDay.TotalSeconds;
-        
-            
-        /*if(levelName.text != null){
-            saveName = levelName.text;
-        }*/
+        string saveName = "Custom Level";
         if(levelName.text.Length > 0){
             saveName = levelName.text;
             currentLvl.title = levelName.text;
@@ -798,21 +812,13 @@ public class editorController : MonoBehaviour
         //Common.DownloadFileHelper.DownloadToFile(content, saveName);
         string path = Application.persistentDataPath + "/Custom Levels/" + currentLvl.levelID + ".goose";
         
+        
         currentLvl.size = size;
         StartCoroutine(finishLoad(path));
 
-        /*if(path == "" || path == null){
-            newLog = "No download path selected";
-            log.color = cursorColors[0];
-            log.text = newLog;
-        }
-
-        levelTemp.currentLvl = currentLvl;
-        levelTemp.levelPlaying = currentLvl;
-
-        newLog = "Saved " + path;
-        log.color = cursorColors[1];
-        log.text = newLog;*/
+        makerProfile profile = JsonConvert.DeserializeObject<makerProfile>(GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>().decrypt(File.ReadAllText(Application.persistentDataPath + "/Custom Levels/" + "makerProfile.json")));
+        profile.clearedLvls[currentLvl.levelID] = false;
+        File.WriteAllText(Application.persistentDataPath + "/Custom Levels/" + "makerProfile.json", GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>().encrypt(JsonConvert.SerializeObject(profile, Formatting.Indented)), System.Text.Encoding.UTF8);
     }
 
     IEnumerator finishLoad(string path){
@@ -835,10 +841,10 @@ public class editorController : MonoBehaviour
         snapshot.sprite = Sprite.Create(newTex, new Rect(0, 0, newTex.width, newTex.height), new Vector2 (0.5f, 0.5f));
         snapshot.transform.parent.GetComponent<Animator>().SetTrigger("snap");
 
-        File.WriteAllText(path, JsonConvert.SerializeObject(currentLvl, Formatting.Indented, new JsonSerializerSettings()
+        File.WriteAllText(path, gm.encrypt(JsonConvert.SerializeObject(currentLvl, Formatting.Indented, new JsonSerializerSettings()
                         { 
                             ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-                        }),
+                        })),
                         Encoding.UTF8);
     }
 
@@ -873,12 +879,16 @@ public class editorController : MonoBehaviour
 
     //Places a block
     void Place(int x, int y, bool playerPlaced){
-        
-        if(currentLvl.checkTile(x, y) && playerPlaced){
+        if(x < 0 || y < 0){
             return;
         }
-
-        
+        if(currentLvl.checkTile(x, y, ((mode)placeSelected).ToString()) && playerPlaced)
+        {
+            return;
+        }
+        if(currentLvl.checkTile(x, y) && playerPlaced){
+            erase(x, y);
+        }
 
         coordinate2D newCoord = new coordinate2D (x, y);
         if(!currentLvl.occupiedTiles.Contains(newCoord)){
@@ -893,7 +903,7 @@ public class editorController : MonoBehaviour
             placePlatform(x, y, newBlock, playerPlaced);
         } else if (placeSelected == (int)mode.obstacle){
             placeDeath(x, y, newBlock, playerPlaced);
-        } else if (placeSelected == (int)mode.tempBlock){
+        } else if (placeSelected == (int)mode.tempPlat){
             placeTempPlat(x, y, newBlock, playerPlaced);
         } else if (placeSelected == (int)mode.blueBlock){
             placeTwoStateBlue(x, y, newBlock, playerPlaced);
@@ -918,6 +928,11 @@ public class editorController : MonoBehaviour
         coordinate2D newCoord = new coordinate2D (x, y);
         if(playerPlaced){
             currentLvl.blocks.Add(newCoord, new block (blockType.block, newCoord, 0, num, false));
+            
+        }
+
+        if(!currentLvl.blocks[newCoord].tags.ContainsKey("replaceBy")){
+            currentLvl.blocks[newCoord].tags.Add("replaceBy", "twoStateButton,twoStateLever");
         }
 
         newBlock.GetComponent<SpriteRenderer>().sprite = blocks[num];
@@ -1000,9 +1015,10 @@ public class editorController : MonoBehaviour
     }
 
     void erase(int x, int y){ 
-        if (currentLvl.getTile(x, y) == null || !tileCursor.activeSelf){
+        if (currentLvl.getTile(x, y) == null || !tileCursor.activeSelf || x < 0 || y < 0){
             return;
         }
+
 
         //Deletes special blocks
         if(currentLvl.getTile(x, y).type == blockType.spawn || currentLvl.getTile(x, y).type == blockType.button || currentLvl.getTile(x, y).type == blockType.door){
@@ -1038,6 +1054,12 @@ public class editorController : MonoBehaviour
         coordinate2D delCoord = new coordinate2D (x, y);
         currentLvl.occupiedTiles.Remove(delCoord);
         currentLvl.blocks.Remove(delCoord);
+
+        if(currentLvl.getTile(x, y + 1) != null){
+            if(currentLvl.getTile(x, y + 1).type == blockType.spawn || currentLvl.getTile(x, y + 1).type == blockType.button || currentLvl.getTile(x, y + 1).type == blockType.door){
+                erase(x, y + 1);
+            }
+        }
     }
 
     public void setSeed(){
@@ -1084,7 +1106,7 @@ public class editorController : MonoBehaviour
         log.text = "loading " + path;*/
 
         //Converts custom level to string
-        currentLvl = GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>().currentLvl;
+        currentLvl = gm.currentLvl;
 
         //Clears all currently placed blocks
         for(int x = 0; x < size[0]; x++){
@@ -1103,14 +1125,17 @@ public class editorController : MonoBehaviour
         camScript.bounds[3] = 0;
         xField.text = size[0].ToString();
         yField.text = size[1].ToString();
+        seed = currentLvl.seed;
 
         //Reads the tiledata and builds the level accordingly
+        //Debug.Log("Size: " + size[0] + ", " + size[1]);
         placedBlocks = new GameObject [size[0], size[1]];
 
         loadingLevel = true;
         foreach(KeyValuePair<coordinate2D, block> block in currentLvl.blocks){
-            //int x = Mathf.FloorToInt((i - 4) / size[1]);
-            //Debug.Log("(" + (i - 4 - x * size[0]) + ", " + x + ")");
+            if(block.Value.tags == null){
+                block.Value.tags = new Dictionary<string, string>();
+            }
             placeSelected = (int)mode.block;
             if(block.Value.type == blockType.block){
                 Place(block.Value.placePos.x, block.Value.placePos.y, false);
@@ -1133,7 +1158,7 @@ public class editorController : MonoBehaviour
                 Place(block.Value.placePos.x, block.Value.placePos.y, false);
             } else
             if(block.Value.type == blockType.tempPlat){
-                placeSelected = (int)mode.tempBlock;
+                placeSelected = (int)mode.tempPlat;
                 Place(block.Value.placePos.x, block.Value.placePos.y, false);
             } else
             if(block.Value.type == blockType.blueBlock){
@@ -1162,11 +1187,11 @@ public class editorController : MonoBehaviour
         loadingLevel = false;
 
         gridReload();
+        placeSelected = (int)mode.block;
         //log.text = "Successfully loaded " + path;
     }
 
     public void selectTool(int select){
-        //Debug.Log(select);
         placeSelected = select;
 
         if(select != (int)mode.obstacle){
@@ -1267,6 +1292,10 @@ public class editorController : MonoBehaviour
                 placeBorderBlock(8, new Vector3 (i, 0, 0));
             }
 
+            //GameObject newBackground = Instantiate(Resources.Load<GameObject>("background"), blockBorderDaddy);
+            //newBackground.transform.localScale = new Vector2 (size[0] * 30, size[1] * 30);
+            //newBackground.transform.position = new Vector3 (size[0] / 2 - 0.5f, size[1] / 2 - 0.5f, 0);
+
             //Places blocks outside the border
             placeBorderVoid(9, new Vector3(-10, size[1] / 2, 0), 18, size[1] + 26);
             placeBorderVoid(9, new Vector3(size[0] + 10, size[1] / 2, 0), 19, size[1] + 26);
@@ -1283,6 +1312,10 @@ public class editorController : MonoBehaviour
         newBorderBlock.gameObject.GetComponent<SpriteRenderer>().color = new Color (0.65f, 0.65f, 0.65f);
         newBorderBlock.gameObject.GetComponent<SpriteRenderer>().material = litMat;
         newBorderBlock.localScale = new Vector3 (1, 1, 1);
+        if(block == 8){
+            //newBorderBlock.GetComponent<BoxCollider2D>().enabled = false;
+            newBorderBlock.GetComponent<SpriteRenderer>().sortingOrder = 2;
+        }
     }
 
     void placeBorderVoid(int block, Vector3 newPos, float width, float height){
@@ -1337,7 +1370,6 @@ public class editorController : MonoBehaviour
                             if(topRoot && botRoot){
                                 int n = Math.Abs((Mathf.RoundToInt(x / (float)Math.PI) * Mathf.RoundToInt(seed / 17)) + (Mathf.RoundToInt(y * (float)Math.PI) * Mathf.RoundToInt(seed / 19)));
                                 int index = n % w1Columns["single"].Count;
-                                //Debug.Log(index);
                                 currentLvl.getTile(x, y).blockVer = index;
                                 placedBlocks[x, y].GetComponent<SpriteRenderer>().sprite = w1Columns["single"][currentLvl.getTile(x, y).blockVer];
                                 column = true;
@@ -1507,7 +1539,7 @@ public enum mode{
     door = 4,
     obstacle = 5,
     platform = 6,
-    tempBlock = 7,
+    tempPlat = 7,
     redBlock = 8,
     blueBlock = 9,
     twoStateButton = 10,

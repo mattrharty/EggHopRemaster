@@ -11,6 +11,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using Unity.VisualScripting;
 using UnityEngine.UI;
+using Unity.Collections;
 
 public class levelPlayer : MonoBehaviour
 {
@@ -24,6 +25,8 @@ public class levelPlayer : MonoBehaviour
     levelData currentLvl;
 
     public InputAction esc;
+
+    [SerializeField] LayerMask groundLayer;
 
     public Transform blockBorderDaddy;
     public GameObject tilePrefab;
@@ -55,6 +58,7 @@ public class levelPlayer : MonoBehaviour
     public twoState twoStateGlobal;
 
     public Transform goos;
+    Transform spawn;
 
     public int deathCount = 0;
     float time = 0;
@@ -110,6 +114,14 @@ public class levelPlayer : MonoBehaviour
         goos.gameObject.GetComponent<PlayerMovement>().space.Disable();
 
         esc.Disable();
+
+        goos.gameObject.GetComponent<PlayerMovement>().eggCooldown = true;
+        goos.gameObject.GetComponent<PlayerMovement>().space.Disable();
+        goos.gameObject.GetComponent<PlayerMovement>().eggHop.Disable();
+        goos.gameObject.GetComponent<PlayerMovement>().restart.Disable();
+        goos.transform.GetChild(0).gameObject.GetComponent<BoxCollider2D>().enabled = false;
+        goos.gameObject.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Static;
+
         Time.timeScale = 1;
         StartCoroutine(library());
     }
@@ -197,10 +209,12 @@ public class levelPlayer : MonoBehaviour
         placeBorder();
 
         Transform blockDaddy = Instantiate(new GameObject (), new Vector3(), new Quaternion(), lvlDaddy).transform;
+            blockDaddy.gameObject.layer = 8;
             Rigidbody2D newRB = blockDaddy.gameObject.AddComponent<Rigidbody2D>();
             newRB.bodyType = RigidbodyType2D.Static;
             blockDaddy.gameObject.AddComponent<CompositeCollider2D>();
         Transform platformDaddy = Instantiate(new GameObject (), new Vector3(), new Quaternion(), lvlDaddy).transform;
+            platformDaddy.gameObject.layer = 8;
             newRB = platformDaddy.gameObject.AddComponent<Rigidbody2D>();
             newRB.bodyType = RigidbodyType2D.Static;
             CompositeCollider2D newCC = platformDaddy.gameObject.AddComponent<CompositeCollider2D>();
@@ -212,18 +226,25 @@ public class levelPlayer : MonoBehaviour
             newRB.bodyType = RigidbodyType2D.Static;
             newCC = spikeDaddy.gameObject.AddComponent<CompositeCollider2D>();
             newCC.isTrigger = true;
-            spikeDaddy.AddComponent<death>();
+            death killScript = spikeDaddy.AddComponent<death>();
+            killScript.source = 1;
 
 
         foreach(KeyValuePair<coordinate2D, block> block in currentLvl.blocks){
+
+            if(block.Value.tags == null){
+                block.Value.tags = new Dictionary<string, string>();
+            }
             //int x = Mathf.FloorToInt((i - 4) / size[1]);
             //Debug.Log("(" + (i - 4 - x * size[0]) + ", " + x + ")");
+            if(block.Value.placePos.x >= 0 && block.Value.placePos.y >= 0){
             if(block.Value.type == blockType.block){
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.block, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), blockDaddy);
                 //Debug.Log(block.Value.blockVer);
             }
             if(block.Value.type == blockType.spawn && block.Value.coreTile){
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.spawn, new Vector3(block.Value.placePos.x, block.Value.placePos.y - 0.1f, 0), new Quaternion(), lvlDaddy);
+                spawn = placedBlocks[block.Value.placePos.x, block.Value.placePos.y].transform;
             }
             if(block.Value.type == blockType.button && block.Value.coreTile){
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.button, new Vector3(block.Value.placePos.x, block.Value.placePos.y - 0.1f, 0), new Quaternion(), lvlDaddy);
@@ -238,7 +259,7 @@ public class levelPlayer : MonoBehaviour
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.spike, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), spikeDaddy);
             }
             if(block.Value.type == blockType.tempPlat){
-                placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.tempBlock, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), blockDaddy);
+                placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.tempBlock, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), platformDaddy);
             }
             if(block.Value.type == blockType.blueBlock){
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.twoStateBlue, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), blockDaddy);
@@ -258,6 +279,7 @@ public class levelPlayer : MonoBehaviour
             if(block.Value.type == blockType.twoStateLever && block.Value.coreTile){
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.twoStateLever, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), blockDaddy);
             }
+            }
         }
 
         levelTemp.levelPlaying = currentLvl;
@@ -267,12 +289,22 @@ public class levelPlayer : MonoBehaviour
         
         goos.position = new Vector3(currentLvl.getTile(blockType.spawn, true).placePos.x, currentLvl.getTile(blockType.spawn, true).placePos.y, 0);
         goos.gameObject.GetComponent<SpriteRenderer>().enabled = true;
+
         goos.gameObject.GetComponent<PlayerMovement>().enabled = true;
+        Animator anim = goos.GetComponent<PlayerMovement>().animate;
+        SpriteRenderer sr = goos.GetComponent<PlayerMovement>().sr;
+        goos.gameObject.GetComponent<PlayerMovement>().enabled = false;
+
         goos.transform.GetChild(0).gameObject.GetComponent<BoxCollider2D>().enabled = true;
         goos.gameObject.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Dynamic;
         goos.gameObject.GetComponent<PlayerMovement>().eggCount = currentLvl.eggCount;
         goos.gameObject.GetComponent<PlayerMovement>().ones.SetTrigger("reset");
         goos.gameObject.GetComponent<PlayerMovement>().tens.SetTrigger("reset");
+        goos.gameObject.GetComponent<PlayerMovement>().space.Enable();
+        goos.gameObject.GetComponent<PlayerMovement>().eggHop.Enable();
+        goos.gameObject.GetComponent<PlayerMovement>().restart.Enable();
+        goos.GetComponent<PlayerMovement>().animate.enabled = true;
+        goos.GetComponent<PlayerMovement>().animate.SetBool("dead", false);
         twoStateGlobal = twoState.red;
         if(currentLvl.eggCount <= 0){
             goos.gameObject.GetComponent<PlayerMovement>().eggCounterDaddy.SetActive(false);
@@ -280,22 +312,54 @@ public class levelPlayer : MonoBehaviour
             goos.gameObject.GetComponent<PlayerMovement>().eggCounterDaddy.SetActive(true);
         }
         GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().playTrans(true, 0);
+        spawn.GetChild(1).GetComponent<Animator>().enabled = false;
+        spawn.GetChild(1).localScale = new Vector3 (1, 1, 1);
+        goos.parent = spawn.GetChild(1);
+        spawn.GetChild(1).localScale = new Vector3 (0.45f, 0.45f, 0.45f);
+        spawn.GetChild(1).GetComponent<Animator>().enabled = true;
+        anim.SetBool("walking", true);
+        anim.Play("Walk");
+        sr.flipX = false;
         Time.timeScale = 1;
+        StartCoroutine(startAnim());
     }
 
-    public IEnumerator resetPlayerPos(){
+    public IEnumerator startAnim(){
+        goos.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Static;
+
+        yield return new WaitUntil(() => spawn.GetChild(1).GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).normalizedTime < 1);
+        yield return new WaitUntil(() => spawn.GetChild(1).GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).normalizedTime >= 1);
+
+        goos.parent = null;
+        goos.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Dynamic;
+        goos.GetComponent<PlayerMovement>().animate.SetBool("Walking", false);
+        goos.gameObject.GetComponent<PlayerMovement>().enabled = true;
+    }
+
+    public IEnumerator resetPlayerPos(int src){
         time = 0;
 
         goos.gameObject.GetComponent<PlayerMovement>().eggCooldown = true;
+        goos.gameObject.GetComponent<PlayerMovement>().space.Disable();
+        goos.gameObject.GetComponent<PlayerMovement>().eggHop.Disable();
+        goos.gameObject.GetComponent<PlayerMovement>().restart.Disable();
+        goos.GetComponent<PlayerMovement>().animate.enabled = true;
         goos.gameObject.GetComponent<PlayerMovement>().enabled = false;
+        goos.GetComponent<PlayerMovement>().animate.SetBool("dead", true);
+        if(src == 0){
+            goos.GetComponent<PlayerMovement>().animate.SetTrigger("fall");
+        } else if (src == 1){
+            goos.GetComponent<PlayerMovement>().animate.SetTrigger("generic");
+        }
         goos.transform.GetChild(0).gameObject.GetComponent<BoxCollider2D>().enabled = false;
         goos.gameObject.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Static;
 
-        yield return new WaitUntil(() => GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().anims[0].GetCurrentAnimatorStateInfo(0).normalizedTime < 1);
-        yield return new WaitUntil(() => GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().anims[0].GetCurrentAnimatorStateInfo(0).normalizedTime >= 1);
+        yield return new WaitUntil(() => GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().anims[1].GetCurrentAnimatorStateInfo(0).normalizedTime < 1);
+        yield return new WaitUntil(() => GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().anims[1].GetCurrentAnimatorStateInfo(0).normalizedTime >= 1);
 
         //goos.gameObject.GetComponent<SpriteRenderer>().enabled = false;
         goos.position = new Vector3(currentLvl.getTile(blockType.spawn, true).placePos.x, currentLvl.getTile(blockType.spawn, true).placePos.y, 0);
+        goos.GetComponent<PlayerMovement>().animate.SetBool("dead", false);
         yield return new WaitForSeconds(1.0f);
         deathCount++;
         Load("", true);
@@ -496,10 +560,13 @@ public class levelPlayer : MonoBehaviour
                 int n = Math.Abs((Mathf.RoundToInt(x / (float)Math.PI) * Mathf.RoundToInt(currentLvl.seed / 17)) + (Mathf.RoundToInt(y * (float)Math.PI) * Mathf.RoundToInt(currentLvl.seed / 19))) + x * y;
                 int index = Mathf.RoundToInt(n / 10) % 3;
 
-                SpriteRenderer sr = placedBlocks[x, y].transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>();
+                SpriteRenderer sr = placedBlocks[x, y].transform.GetChild(0).GetChild(3).GetComponent<SpriteRenderer>();
                 placedBlocks[x, y].transform.GetChild(0).GetComponent<tempPlatform>().type = index;
                 Debug.Log(index);
                 sr.sprite = this.GetComponent<extraSprites>().tempPlat[index];
+                placedBlocks[x, y].transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().sprite = placedBlocks[x, y].transform.GetChild(0).GetComponent<tempPlatform>().spriteSelect(4);
+                placedBlocks[x, y].transform.GetChild(0).GetChild(1).GetComponent<SpriteRenderer>().sprite = placedBlocks[x, y].transform.GetChild(0).GetComponent<tempPlatform>().spriteSelect(5);;
+                placedBlocks[x, y].transform.GetChild(0).GetChild(2).GetComponent<SpriteRenderer>().sprite = placedBlocks[x, y].transform.GetChild(0).GetComponent<tempPlatform>().spriteSelect(6);;
             }}}
         }
     }
@@ -543,6 +610,10 @@ public class levelPlayer : MonoBehaviour
             placeBorderBlock(8, new Vector3 (i, 0, 0));
         }
 
+        /*GameObject newBackground = Instantiate(Resources.Load<GameObject>("background"), blockBorderDaddy);
+            newBackground.GetComponent<SpriteRenderer>().size = new Vector2 (currentLvl.size[0], currentLvl.size[1]);
+            newBackground.transform.position = new Vector3 (currentLvl.size[0] / 2 - 0.5f, currentLvl.size[1] / 2 - 0.5f, 0);*/
+
         //Places blocks outside the border
         placeBorderVoid(9, new Vector3(-10, currentLvl.size[1] / 2, 0), 18, currentLvl.size[1] + 26);
         placeBorderVoid(9, new Vector3(currentLvl.size[0] + 10, currentLvl.size[1] / 2, 0), 19, currentLvl.size[1] + 26);
@@ -553,13 +624,18 @@ public class levelPlayer : MonoBehaviour
     void placeBorderBlock(int block, Vector3 newPos){
         Transform newBorderBlock = Instantiate(tilePrefab, newPos, new Quaternion(), blockBorderDaddy).transform;
         newBorderBlock.gameObject.GetComponent<SpriteRenderer>().sprite = borderBlocks[block];
-        newBorderBlock.gameObject.GetComponent<SpriteRenderer>().sortingOrder = 0;
+        if(block == 8){
+            newBorderBlock.gameObject.GetComponent<SpriteRenderer>().sortingLayerName = "Goose";
+        } else {
+            newBorderBlock.GetComponent<BoxCollider2D>().compositeOperation = Collider2D.CompositeOperation.Merge;
+        }
+        newBorderBlock.gameObject.GetComponent<SpriteRenderer>().sortingOrder = 5;
         newBorderBlock.gameObject.GetComponent<SpriteRenderer>().color = new Color (0.65f, 0.65f, 0.65f);
         newBorderBlock.gameObject.GetComponent<SpriteRenderer>().material = litMat;
         newBorderBlock.localScale = new Vector3 (1, 1, 1);
         if(block == 8){
             newBorderBlock.GetComponent<BoxCollider2D>().enabled = false;
-            newBorderBlock.GetComponent<SpriteRenderer>().sortingOrder = 1;
+            newBorderBlock.GetComponent<SpriteRenderer>().sortingOrder = 2;
         }
     }
 
@@ -567,7 +643,10 @@ public class levelPlayer : MonoBehaviour
         Transform newBorderBlock = Instantiate(tilePrefab, newPos, new Quaternion(), blockBorderDaddy).transform;
         newBorderBlock.gameObject.GetComponent<SpriteRenderer>().sprite = borderBlocks[block];
         newBorderBlock.gameObject.GetComponent<SpriteRenderer>().color = new Color (0.65f, 0.65f, 0.65f);
-        newBorderBlock.gameObject.GetComponent<SpriteRenderer>().sortingOrder = -2;
+        if(block == 10){
+            newBorderBlock.gameObject.GetComponent<SpriteRenderer>().sortingLayerName = "Goose";
+        }
+        newBorderBlock.gameObject.GetComponent<SpriteRenderer>().sortingOrder = 4;
         newBorderBlock.gameObject.GetComponent<SpriteRenderer>().material = litMat;
         newBorderBlock.localScale = new Vector3(width, height, 1);
 
@@ -575,6 +654,7 @@ public class levelPlayer : MonoBehaviour
             newBorderBlock.AddComponent<death>();
             BoxCollider2D deathZone = newBorderBlock.AddComponent<BoxCollider2D>();
             deathZone.isTrigger = true;
+            newBorderBlock.gameObject.layer = 9;
         }
     }
 
@@ -586,9 +666,9 @@ public class levelPlayer : MonoBehaviour
         completionAnim.speed = 1;
 
         string path = Application.persistentDataPath + "/Custom Levels/";
-        makerProfile profile = JsonConvert.DeserializeObject<makerProfile>(File.ReadAllText(path + "makerProfile.json"));
+        makerProfile profile = JsonConvert.DeserializeObject<makerProfile>(GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>().decrypt(File.ReadAllText(path + "makerProfile.json")));
         profile.clearedLvls[currentLvl.levelID] = true;
-        File.WriteAllText(path + "makerProfile.json", JsonConvert.SerializeObject(profile, Formatting.Indented), System.Text.Encoding.UTF8);
+        File.WriteAllText(path + "makerProfile.json", GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>().encrypt(JsonConvert.SerializeObject(profile, Formatting.Indented)), System.Text.Encoding.UTF8);
 
         completionAnim.transform.GetChild(4).GetComponent<TMP_Text>().text = "\n" + currentLvl.title + "\n" + "\n";
         if(!completionAnim.transform.GetChild(4).GetComponent<TMP_Text>().isTextOverflowing){
@@ -609,10 +689,14 @@ public class levelPlayer : MonoBehaviour
         }
 
         completionAnim.transform.GetChild(4).GetComponent<TMP_Text>().text += hours + ":" + minutes + ":" + seconds;
-        completionAnim.transform.GetChild(4).GetComponent<TMP_Text>().text += "\n" + "\n" + (deathCount / 3).ToString();
+        completionAnim.transform.GetChild(4).GetComponent<TMP_Text>().text += "\n" + "\n" + (deathCount).ToString();
     }
 
     public void Replay(){
+        goos.gameObject.GetComponent<PlayerMovement>().space.Disable();
+        goos.gameObject.GetComponent<PlayerMovement>().eggHop.Disable();
+        goos.gameObject.GetComponent<PlayerMovement>().restart.Disable();
+        esc.Disable();
         StartCoroutine(replay());
     }
 

@@ -9,7 +9,8 @@ using UnityEngine.SceneManagement;
 using System;
 using System.Text;
 using SFB;
-using JetBrains.Annotations;
+using System.Security.Cryptography;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.VisualScripting;
 
 public class levelLibrarian : MonoBehaviour
@@ -25,7 +26,9 @@ public class levelLibrarian : MonoBehaviour
     levelData selectedLvl;
     public Image selectedThumbnail;
     public TMP_Text selectedTitle;
-    int selectedPlace;
+    int selectedPlace = -4;
+
+    [SerializeField] Scrollbar scroll;
 
     [SerializeField] GameObject filledSlotPrefab;
     List<GameObject> slots;
@@ -45,27 +48,34 @@ public class levelLibrarian : MonoBehaviour
     [SerializeField] GameObject clearInfo;
     [SerializeField] Sprite[] clearSprites;
 
+    gameManager gm;
+
     Dictionary<int, levelData> loadedLvls;
     //Level Placement, Level Data
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        gm = GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>();
+
         loadedLvls = new Dictionary<int, levelData>();
 
         filledButtons.SetActive(false);
         emptyButtons.SetActive(false);
         generalPanel.SetActive(false);
 
-        levelSelector.parent.gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(0, Mathf.Floor(levelRows / 4) * 325 + 25);
+        scroll.value = 0;
 
         slots = new List<GameObject>();
 
         for (int i = 0; i < levelRows; i++)
         {
-            Vector3 newPos = new Vector3((i % 4) * 330, Mathf.Floor(i / 4) * -325 - 160, 0);
-            GameObject newButton = Instantiate(newSlotPrefab, newPos, new Quaternion(), levelSelector);
-            slots.Add(newButton);
+            GameObject newSlot = Instantiate(newSlotPrefab, new Vector3(), new Quaternion(), levelSelector);
+            Destroy(newSlot.GetComponent<Image>());
+            Destroy(newSlot.GetComponent<Button>());
+            DestroyImmediate(newSlot.transform.GetChild(0).gameObject);
+            slots.Add(newSlot);
+            GameObject newButton = Instantiate(newSlotPrefab, new Vector3(), new Quaternion(), newSlot.transform);
             string n = i.ToString();
             newButton.GetComponent<Button>().onClick.AddListener(() => clickSlot(int.Parse(n)));
         }
@@ -80,11 +90,11 @@ public class levelLibrarian : MonoBehaviour
             profile = new makerProfile();
             profile.clearedLvls = new Dictionary<string, bool>();
             profile.lvlPlacement = new Dictionary<string, int>();
-            File.WriteAllText(path + "makerProfile.json", JsonConvert.SerializeObject(profile, Formatting.Indented), Encoding.UTF8);
+            File.WriteAllText(path + "makerProfile.json", gm.encrypt(JsonConvert.SerializeObject(profile, Formatting.Indented)), Encoding.UTF8);
         }
         else
         {
-            profile = JsonConvert.DeserializeObject<makerProfile>(File.ReadAllText(path + "makerProfile.json"));
+            profile = JsonConvert.DeserializeObject<makerProfile>(gm.decrypt(File.ReadAllText(path + "makerProfile.json")));
         }
         string[] files = Directory.GetFiles(path);
         foreach (string file in files)
@@ -93,22 +103,25 @@ public class levelLibrarian : MonoBehaviour
             {
                 try
                 {
-                    levelData lvl = JsonConvert.DeserializeObject<levelData>(File.ReadAllText(file));
+                    levelData lvl = JsonConvert.DeserializeObject<levelData>(gm.decrypt(File.ReadAllText(file)));
                     if (profile.levels.Contains(lvl.levelID))
                     {
                         int i = profile.lvlPlacement[lvl.levelID];
                         loadedLvls.Add(i, lvl);
 
-                        GameObject.Destroy(slots[i]);
-                        Vector3 newPos = new Vector3((i % 4) * 330 + 150, Mathf.Floor(i / 4) * -325 - 310, 0);
-                        GameObject newSlot = Instantiate(filledSlotPrefab, newPos, new Quaternion(), levelSelector);
-                        slots[i] = newSlot;
+                        while(slots[i].transform.childCount > 0){
+                            DestroyImmediate(slots[i].transform.GetChild(0).gameObject);
+                        }
+                        GameObject newSlot = Instantiate(filledSlotPrefab, new Vector3(), new Quaternion(), slots[i].transform);
 
                         string n = i.ToString();
                         newSlot.GetComponent<Button>().onClick.AddListener(() => clickSlot(int.Parse(n)));
 
                         newSlot.name = lvl.levelID;
                         newSlot.transform.GetChild(1).gameObject.GetComponent<TMP_Text>().text = lvl.title;
+                        if(lvl.title.Length > 25){
+                            newSlot.transform.GetChild(1).gameObject.GetComponent<TMP_Text>().text = lvl.title.Substring(0, 25) + "...";
+                        }
                         if (lvl.thumbnail != null)
                         {
                             newSlot.transform.GetChild(2).gameObject.GetComponent<Image>().color = Color.white;
@@ -127,9 +140,25 @@ public class levelLibrarian : MonoBehaviour
                     Debug.LogError(error);
                 }
             }
+
+            List<string> ids = new List<string> {};
+            foreach(KeyValuePair<string, int> place in profile.lvlPlacement){
+                if(!loadedLvls.ContainsKey(place.Value)){
+                    //ids.Add(place.Key);
+                }
+            }
+            foreach(string id in ids){
+                profile.lvlPlacement.Remove(id);
+                profile.clearedLvls.Remove(id);
+                profile.levels.Remove(id);
+            }
         }
 
         GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().playTrans(true, 0);
+    }
+
+    void Update(){
+        selector.rotation = new Quaternion(0, 0, 0, 0);
     }
 
     public void newLevel()
@@ -142,24 +171,24 @@ public class levelLibrarian : MonoBehaviour
         selectedLvl.title = "New Level";
         selectedLvl.blocks = new Dictionary<coordinate2D, block>();
         selectedLvl.occupiedTiles = new List<coordinate2D>();
-        selectedLvl.tags = new List<string> { "" };
+        selectedLvl.tags = new List<string> { "unplayable" };
         profile.addLevel(selectedLvl.levelID, selectedPlace);
 
-        File.WriteAllText(path + selectedLvl.levelID + ".goose", JsonConvert.SerializeObject(selectedLvl, Formatting.Indented), Encoding.UTF8);
+        File.WriteAllText(path + selectedLvl.levelID + ".goose", gm.encrypt(JsonConvert.SerializeObject(selectedLvl, Formatting.Indented)), Encoding.UTF8);
         openLvl();
     }
 
     public void openLvl()
     {
-        GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>().currentLvl = selectedLvl;
-        File.WriteAllText(path + "makerProfile.json", JsonConvert.SerializeObject(profile, Formatting.Indented), Encoding.UTF8);
+        gm.currentLvl = selectedLvl;
+        File.WriteAllText(path + "makerProfile.json", gm.encrypt(JsonConvert.SerializeObject(profile, Formatting.Indented)), Encoding.UTF8);
         StartCoroutine(editor());
     }
 
     public void playLvl()
     {
-        GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>().currentLvl = selectedLvl;
-        File.WriteAllText(path + "makerProfile.json", JsonConvert.SerializeObject(profile, Formatting.Indented), Encoding.UTF8);
+        gm.currentLvl = selectedLvl;
+        File.WriteAllText(path + "makerProfile.json", gm.encrypt(JsonConvert.SerializeObject(profile, Formatting.Indented)), Encoding.UTF8);
         StartCoroutine(player());
     }
 
@@ -171,16 +200,18 @@ public class levelLibrarian : MonoBehaviour
         profile.clearedLvls.Remove(id);
         loadedLvls.Remove(selectedPlace);
 
-        GameObject oldButton = slots[selectedPlace];
+        GameObject oldButton = slots[selectedPlace].transform.GetChild(0).gameObject;
         int i = selectedPlace;
-        Vector3 newPos = new Vector3(oldButton.transform.position.x - 150, oldButton.transform.position.y + 155, 0);
-        GameObject newButton = Instantiate(newSlotPrefab, newPos, new Quaternion(), levelSelector);
+        GameObject newButton = Instantiate(newSlotPrefab, slots[selectedPlace].transform.position, new Quaternion(), slots[selectedPlace].transform);
+        selector.parent = newButton.transform;
+        selector.GetComponent<RectTransform>().localPosition = new Vector3(0, 0, 0);
+        selector.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, 0, 0);
+        selector.GetComponent<Animator>().Play("Selector", 0, 0f);
         string n = i.ToString();
         newButton.GetComponent<Button>().onClick.AddListener(() => clickSlot(int.Parse(n)));
-        slots[selectedPlace] = newButton;
         Destroy(oldButton);
         File.Delete(path + id + ".goose");
-        File.WriteAllText(path + "makerProfile.json", JsonConvert.SerializeObject(profile, Formatting.Indented), Encoding.UTF8);
+        File.WriteAllText(path + "makerProfile.json", gm.encrypt(JsonConvert.SerializeObject(profile, Formatting.Indented)), Encoding.UTF8);
         clickSlot(selectedPlace);
     }
 
@@ -211,24 +242,33 @@ public class levelLibrarian : MonoBehaviour
             return;
         }
 
-        selectedLvl = JsonConvert.DeserializeObject<levelData>(File.ReadAllText(iPath));
+        selectedLvl = JsonConvert.DeserializeObject<levelData>(gm.decrypt(File.ReadAllText(iPath)));
+        string[] listId = selectedLvl.levelID.Split('-');
+        selectedLvl.levelID = listId[0] + "-" + listId[1] + "-" + RandomString(3) + selectedPlace;
         if(profile.levels.Contains(selectedLvl.levelID)){
             return;
         }
-        File.WriteAllText(path + selectedLvl.levelID + ".goose", JsonConvert.SerializeObject(selectedLvl, Formatting.Indented), Encoding.UTF8);
+        File.WriteAllText(path + selectedLvl.levelID + ".goose", gm.encrypt(JsonConvert.SerializeObject(selectedLvl, Formatting.Indented)), Encoding.UTF8);
         profile.addLevel(selectedLvl.levelID, selectedPlace);
-        File.WriteAllText(path + "makerProfile.json", JsonConvert.SerializeObject(profile, Formatting.Indented), Encoding.UTF8);
+        File.WriteAllText(path + "makerProfile.json", gm.encrypt(JsonConvert.SerializeObject(profile, Formatting.Indented)), Encoding.UTF8);
 
         string id = selectedLvl.levelID;
-        GameObject oldButton = slots[selectedPlace];
+        GameObject oldButton = slots[selectedPlace].transform.GetChild(0).gameObject;
         int i = selectedPlace;
-        Vector3 newPos = new Vector3(oldButton.transform.position.x + 150, oldButton.transform.position.y - 155, 0);
-        GameObject newSlot = Instantiate(filledSlotPrefab, newPos, new Quaternion(), levelSelector);
+        Vector3 newPos = slots[selectedPlace].transform.position;
+        GameObject newSlot = Instantiate(filledSlotPrefab, newPos, new Quaternion(), slots[selectedPlace].transform);
+        selector.parent = newSlot.transform;
+        selector.GetComponent<RectTransform>().localPosition = new Vector3(0, 0, 0);
+        selector.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, 0, 0);
+        selector.GetComponent<Animator>().Play("Selector", 0, 0f);
         string n = i.ToString();
         levelData lvl = selectedLvl;
         newSlot.GetComponent<Button>().onClick.AddListener(() => clickSlot(int.Parse(n)));
         newSlot.name = lvl.levelID;
         newSlot.transform.GetChild(1).gameObject.GetComponent<TMP_Text>().text = lvl.title;
+        if(lvl.title.Length > 25){
+            newSlot.transform.GetChild(1).gameObject.GetComponent<TMP_Text>().text = lvl.title.Substring(0, 25) + "...";
+        }
         if (lvl.thumbnail != null)
         {
             newSlot.transform.GetChild(2).gameObject.GetComponent<Image>().color = Color.white;
@@ -240,11 +280,16 @@ public class levelLibrarian : MonoBehaviour
         {
             newSlot.transform.GetChild(2).gameObject.GetComponent<Image>().color = Color.black;
         }
-        slots[selectedPlace] = newSlot;
         loadedLvls[selectedPlace] = selectedLvl;
         Destroy(oldButton);
-        File.WriteAllText(path + "makerProfile.json", JsonConvert.SerializeObject(profile, Formatting.Indented), Encoding.UTF8);
+        File.WriteAllText(path + "makerProfile.json", gm.encrypt(JsonConvert.SerializeObject(profile, Formatting.Indented)), Encoding.UTF8);
         clickSlot(selectedPlace);
+        StartCoroutine(clickDelay(selectedPlace));
+    }
+
+    System.Collections.IEnumerator clickDelay(int i){
+        yield return new WaitForEndOfFrame();
+        clickSlot(i);
     }
 
     public void clickSlot(int lvlPlace)
@@ -257,6 +302,11 @@ public class levelLibrarian : MonoBehaviour
             filledButtons.SetActive(true);
             emptyButtons.SetActive(false);
             selectedTitle.text = selectedLvl.title;
+            if(selectedLvl.title.Length > 65){
+                selectedTitle.fontSize = 36;
+            } else {
+                selectedTitle.fontSize = 48;
+            }
             if (selectedLvl.thumbnail != null)
             {
                 selectedThumbnail.color = Color.white;
@@ -269,7 +319,11 @@ public class levelLibrarian : MonoBehaviour
                 selectedThumbnail.color = Color.black;
             }
 
-            selector.position = new Vector3(slots[lvlPlace].transform.position.x - 150, slots[lvlPlace].transform.position.y + 155, 0);
+            selector.parent = slots[lvlPlace].transform;
+            selector.GetComponent<RectTransform>().localPosition = new Vector3(0, 0, 0);
+            selector.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, 0, 0);
+            selector.GetComponent<Animator>().Play("Selector", 0, 0f);
+            selector.GetComponent<Animator>().speed = 1;
 
             clearInfo.SetActive(true);
             playInfo.SetActive(true);
@@ -309,15 +363,19 @@ public class levelLibrarian : MonoBehaviour
             selectedTitle.text = "Empty Slot";
             selectedThumbnail.color = Color.black;
 
-            selector.position = slots[lvlPlace].transform.position + new Vector3(0, 5, 0);
+            selector.parent = slots[lvlPlace].transform;
+            selector.GetComponent<RectTransform>().localPosition = new Vector3(0, 0, 0);
+            selector.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, 0, 0);
+            Debug.Log("reselect");
+            selector.GetComponent<Animator>().Play("Selector", 0, 0f);
         }
 
-        selector.GetComponent<Animator>().SetTrigger("reselect");
+        
     }
 
     public void exit()
     {
-        File.WriteAllText(path + "makerProfile.json", JsonConvert.SerializeObject(profile, Formatting.Indented), Encoding.UTF8);
+        File.WriteAllText(path + "makerProfile.json", gm.encrypt(JsonConvert.SerializeObject(profile, Formatting.Indented)), Encoding.UTF8);
         StartCoroutine(mainMenu());
     }
 
@@ -370,20 +428,19 @@ public class makerProfile
 
     public makerProfile()
     {
-        string Id = RandomString(5);
+        string Id = RandomString(6);
         userID = Id;
         levels = new List<string>();
     }
 
     public string generateLevelID(int seed)
     {
-        string Id = userID + "-" + RandomString(3) + Mathf.FloorToInt(seed / 1000).ToString();
+        string Id = userID + "-" + RandomString(4) + Mathf.FloorToInt(seed / 1000).ToString() + "-" + RandomString(3);
         return Id;
     }
 
     public void addLevel(string lvlID, int requestedPlace)
     {
-        Debug.Log(lvlID);
         levels.Add(lvlID);
         lvlPlacement.Add(lvlID, requestedPlace);
         clearedLvls.Add(lvlID, false);

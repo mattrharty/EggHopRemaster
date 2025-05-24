@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 6247541852268230179}
   - component: {fileID: 5902619088497012765}
   - component: {fileID: 6914418304856027021}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: twoStateLever
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -226,7 +226,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 983508318021605311}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: twoStateLever
   m_TagString: Untagged
   m_Icon: {fileID: 0}

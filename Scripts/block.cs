@@ -27,6 +27,7 @@ public class block
         this.rot = rot;
         this.blockVer = blockVer;
         this.coreTile = coreTile;
+        tags = new Dictionary<string, string>();
     } 
 
 }
@@ -87,6 +88,38 @@ public class levelData{
     }
 
     public List<coordinate2D> occupiedTiles;
+
+    public bool checkTile(int x, int y, string mode) {
+        if(occupiedTiles.Count == 0){
+            return false;
+        }
+        coordinate2D newCoord = new coordinate2D(x, y);
+        foreach (coordinate2D coord in occupiedTiles){
+            if(newCoord.x == coord.x && newCoord.y == coord.y){
+                if (!blocks.ContainsKey(coord))
+                {
+                    return false;
+                }
+                if (blocks[coord].tags.Count == 0)
+                {
+                    return true;
+                }
+                if (blocks[coord].tags.ContainsKey("replaceBy"))
+                {
+                    string[] replace = blocks[coord].tags["replaceBy"].Split(",");
+                    foreach (string type in replace)
+                    {
+                        if (mode == type)
+                        {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+        }
+        return false;
+    }
 
     public bool checkTile(int x, int y) {
         if(occupiedTiles.Count == 0){

@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2961492688339814621}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: twoStateBlockBlue
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -45,7 +45,7 @@ GameObject:
   - component: {fileID: 1137096808019872066}
   - component: {fileID: 536549649592145188}
   - component: {fileID: 8468678009244783980}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: twoStateBlockBlue
   m_TagString: Untagged
   m_Icon: {fileID: 0}
