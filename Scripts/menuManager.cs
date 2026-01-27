@@ -23,11 +23,14 @@ public class menuManager : MonoBehaviour
         StartCoroutine(quitDif());
     }
 
-    public IEnumerator playDif(){
+    public IEnumerator playDif()
+    {
         GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().playTrans(false, 0);
         yield return new WaitUntil(() => GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().anims[0].GetCurrentAnimatorStateInfo(0).normalizedTime < 1);
         yield return new WaitUntil(() => GameObject.FindGameObjectWithTag("transitions").GetComponent<transitions>().anims[0].GetCurrentAnimatorStateInfo(0).normalizedTime >= 1);
-        SceneManager.LoadScene("Level Player");
+        Scene oldScene = SceneManager.GetActiveScene();
+        SceneManager.LoadSceneAsync("Level Player");
+        //SceneManager.UnloadSceneAsync(oldScene);
     }
 
     public IEnumerator makeDif(){

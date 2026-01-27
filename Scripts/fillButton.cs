@@ -18,7 +18,7 @@ public class fillButton : MonoBehaviour, IPointerDownHandler, IPointerExitHandle
 
     void Update(){
         if(clicked){
-            fill.value += 0.001f;
+            fill.value += 0.75f * Time.deltaTime;
             if(fill.value == 1){
                 fill.value = 0;
                 clicked = false;

@@ -7,15 +7,12 @@ using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 using System.IO;
 using System;
-using SFB;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
 using UnityEngine.SceneManagement;
 using System.Text;
 using System.Collections;
-using UnityEngine.Rendering;
-using Unity.VisualScripting.FullSerializer;
-using System.Linq;
+using UnityEngine.Purchasing.MiniJSON;
 
 public class editorController : MonoBehaviour
 {
@@ -48,13 +45,20 @@ public class editorController : MonoBehaviour
     public GameObject tilePrefab;
     public Transform gridDaddy;
 
-    public int placeMode;
-    public int placeSelected;
+    public mode placeMode;
+    public mode placeSelected;
     public bool redSelect = true;
 
     public camControl camScript;
 
+    public TextAsset jsonBlocks;
+    public List<blockEditor> palette;
+
     public List<Button> buttons;
+    public GameObject blockButtonPrefab;
+    public Transform ButtonsDaddy;
+    public List<Button> recentButtons;
+    public List<mode> recentInts = new List<mode> {};
 
     int seed;
 
@@ -89,8 +93,11 @@ public class editorController : MonoBehaviour
     Dictionary<string, List<Sprite>> w1Columns = new Dictionary<string, List<Sprite>>();
 
     w1OneWay oneWays;
+    editorUI ui;
 
     int rotate = 0;
+
+    tool toolSelected = tool.draw;    
 
     [SerializeField] Image snapshot;
 
@@ -119,6 +126,10 @@ public class editorController : MonoBehaviour
     {
         gm = GameObject.FindGameObjectWithTag("gameManager").GetComponent<gameManager>();
 
+        ui = GameObject.Find("UIController").GetComponent<editorUI>();
+
+        recentInts.Insert(0, mode.block);
+
         xField.characterLimit = maxSize;
         yField.characterLimit = maxSize;
         levelName.characterLimit = 100;
@@ -136,11 +147,58 @@ public class editorController : MonoBehaviour
         camScript.bounds[3] = 0;
         currentLvl.size = size;
 
-        placeSelected = (int)mode.block;
+        placeSelected = mode.block;
 
-        GameObject[] buttonsObj = GameObject.FindGameObjectsWithTag("blockPanel");
-        foreach(GameObject obj in buttonsObj){
-            buttons.Add(obj.GetComponent<Button>());
+        blockPalette blockPalette = JsonConvert.DeserializeObject<blockPalette>(jsonBlocks.text);
+        foreach (byteEditor obj in blockPalette.blocks)
+        {
+            List<Sprite> priTex = new List<Sprite>();
+            List<Sprite> secTex = new List<Sprite>();
+            Debug.Log(obj.primaryTex);
+            foreach (byte[] b in obj.primaryTex)
+            {
+                Texture2D newTex = new Texture2D(2, 2);
+                newTex.LoadImage(b);
+                priTex.Add(Sprite.Create(newTex, new Rect(0, 0, newTex.width, newTex.height), new Vector2(0.5f, 0.5f)));
+            }
+            foreach (byte[] b in obj.secondaryTex)
+            {
+                Texture2D newTex = new Texture2D(2, 2);
+                newTex.LoadImage(b);
+                secTex.Add(Sprite.Create(newTex, new Rect(0, 0, newTex.width, newTex.height), new Vector2(0.5f, 0.5f)));
+            }
+            palette.Add(new blockEditor(obj.name, obj.width, obj.height, obj.canFill, obj.isTwoState, obj.canReplace, priTex, secTex));
+        }
+
+        foreach (blockEditor obj in palette)
+        {
+
+            GameObject newButton = Instantiate(blockButtonPrefab, ButtonsDaddy);
+            //Debug.Log(obj.primaryTex[0]);
+            newButton.transform.GetChild(0).GetChild(0).GetComponent<Image>().sprite = obj.primaryTex[0];
+
+            ui.blockSelect.Add(obj.primaryTex[0]);
+
+            newButton.GetComponent<Button>().onClick.AddListener(() => selectTool(obj));
+            newButton.GetComponent<Button>().onClick.AddListener(() => selectTool2(newButton.GetComponent<Button>()));
+
+            buttons.Add(newButton.GetComponent<Button>());
+        }
+
+        GameObject[] recentsObj = GameObject.FindGameObjectsWithTag("recent");
+        foreach(GameObject obj in recentsObj){
+            if (obj.name != "1" && obj.name != "2")
+            {
+                recentButtons.Add(obj.GetComponent<Button>());
+            }
+            else if (obj.name != "2")
+            {
+                recentButtons.Insert(0, obj.GetComponent<Button>());
+            }
+            else
+            {
+                recentButtons.Insert(1, obj.GetComponent<Button>());
+            }
             obj.GetComponent<Image>().material = normMat;
         }
 
@@ -166,7 +224,7 @@ public class editorController : MonoBehaviour
         }
 
         singleFill.interactable = true;
-        singleFill.isOn = placeMode == (int)mode.fill;
+        singleFill.isOn = placeMode == mode.fill;
 
         blueRed.interactable = false;
         blueRed.isOn = redSelect;
@@ -181,8 +239,34 @@ public class editorController : MonoBehaviour
     }
 
     void hotkey(Button toolButton){
-        selectTool(Array.IndexOf(tools, toolButton));
+        selectTool(palette[Array.IndexOf(tools, toolButton)]);
         selectTool2(toolButton);
+    }
+
+    public void recent(int index)
+    {
+        if (recentInts.Count > index)
+        {
+            selectTool(palette[(int)recentInts[index]]);
+            selectTool2(buttons[(int)recentInts[index]]);
+            recentRefresh();
+        }
+    }
+
+    void recentRefresh()
+    {
+        for (int i = 0; i < 3; i++) {
+            if (recentInts.Count < i + 2)
+            {
+                recentButtons[i].transform.GetChild(0).GetChild(0).GetComponent<Image>().enabled = false;
+            }
+            else
+            {
+                recentButtons[i].transform.GetChild(0).GetChild(0).GetComponent<Image>().enabled = true;
+                recentButtons[i].transform.GetChild(0).GetChild(0).GetComponent<Image>().sprite = ui.blockSelect[(int)recentInts[i]];
+                recentButtons[i].transform.GetChild(0).GetChild(0).localScale = new Vector3(ui.thumbnailSize[(int)recentInts[i]].x / 55f, ui.thumbnailSize[(int)recentInts[i]].y / 55f, 1f);
+            }
+        }
     }
 
     void leftClicked(){
@@ -190,9 +274,9 @@ public class editorController : MonoBehaviour
             return;
         }
         bool readyToPlace = true;
-        if(placeMode == (int)mode.fill){
+        if(placeMode == mode.fill){
             fill();
-        } else if (placeSelected == (int)mode.spawn){
+        } else if (placeSelected == mode.spawn){
             //Checks to see if the placement location is valid
             for (int x = -1; x <= 1; x++){
                 for (int y = 0; y <= 2; y++){
@@ -247,10 +331,11 @@ public class editorController : MonoBehaviour
 
             //Creates the prefab
             GameObject newSpawn = Instantiate(otherObjects[0], new Vector3(mousePos[0], mousePos[1], 0), new Quaternion());
+            newSpawn.AddComponent<spriteDropShadow>();
 
             //Adds the prefab to placed blocks
             placedBlocks[mousePos[0], mousePos[1]] = newSpawn;
-        } else if (placeSelected == (int)mode.button){
+        } else if (placeSelected == mode.button){
             //Checks to see if the placement location is valid
             for (int x = -1; x <= 1; x++){
                 for (int y = 0; y <= 0; y++){
@@ -305,10 +390,11 @@ public class editorController : MonoBehaviour
 
             //Creates the prefab
             GameObject newButton = Instantiate(otherObjects[1], new Vector3(mousePos[0], mousePos[1], 0), new Quaternion());
+            newButton.AddComponent<spriteDropShadow>();
 
             //Adds the prefab to placed blocks
             placedBlocks[mousePos[0], mousePos[1]] = newButton;
-        } else if (placeSelected == (int)mode.door){
+        } else if (placeSelected == mode.door){
             //Checks to see if the placement location is valid
             for (int x = -1; x <= 1; x++){
                 for (int y = 0; y <= 3; y++){
@@ -365,10 +451,11 @@ public class editorController : MonoBehaviour
 
             //Creates the prefab
             GameObject newDoor = Instantiate(otherObjects[2], new Vector3(mousePos[0], mousePos[1], 0), new Quaternion());
+            newDoor.AddComponent<spriteDropShadow>().children.Add(1);
 
             //Adds the prefab to placed blocks
             placedBlocks[mousePos[0], mousePos[1]] = newDoor;
-        } else if (placeSelected == (int)mode.twoStateButton){
+        } else if (placeSelected == mode.twoStateButton){
             //Checks to see if the placement location is valid
             for (int y = 0; y <= 1; y++){
                 try {
@@ -407,12 +494,13 @@ public class editorController : MonoBehaviour
 
             //Creates the prefab
             GameObject newObj = Instantiate(otherObjects[3], new Vector3(mousePos[0], mousePos[1], 0), new Quaternion());
+            newObj.AddComponent<spriteDropShadow>();
 
             //Adds the prefab to placed blocks
             placedBlocks[mousePos[0], mousePos[1]] = newObj;
 
             reloadBlocks();
-        } else if (placeSelected == (int)mode.twoStateLever){
+        } else if (placeSelected == mode.twoStateLever){
             //Checks to see if the placement location is valid
             for (int y = 0; y <= 1; y++){
                 try {
@@ -451,6 +539,7 @@ public class editorController : MonoBehaviour
 
             //Creates the prefab
             GameObject newObj = Instantiate(otherObjects[4], new Vector3(mousePos[0], mousePos[1], 0), new Quaternion());
+            newObj.AddComponent<spriteDropShadow>();
 
             //Adds the prefab to placed blocks
             placedBlocks[mousePos[0], mousePos[1]] = newObj;
@@ -482,7 +571,7 @@ public class editorController : MonoBehaviour
     }
 
     void fill(){
-        if(placeMode == (int)mode.single){
+        if(placeMode == mode.single){
             return;
         }
         if(EventSystem.current.currentSelectedGameObject != null ||
@@ -501,7 +590,7 @@ public class editorController : MonoBehaviour
         }
         for (int x = Mathf.Min(fillX, mousePos[0]); x <= Mathf.Max(fillX, mousePos[0]); x++){
             for (int y = Mathf.Min(fillY, mousePos[1]); y <= Mathf.Max(fillY, mousePos[1]); y++){
-                if(placeSelected != (int)mode.erase){
+                if(toolSelected != tool.erase){
                     Place(x, y, true);
                 } else {
                     erase(x, y);
@@ -524,14 +613,14 @@ public class editorController : MonoBehaviour
     }
 
     bool placingOne(){
-        if(placeSelected == (int)mode.block ||
-            placeSelected == (int)mode.platform ||
-            placeSelected == (int)mode.obstacle ||
-            placeSelected == (int)mode.tempPlat ||
-            placeSelected == (int)mode.redBlock ||
-            placeSelected == (int)mode.blueBlock ||
-            placeSelected == (int)mode.redSpike ||
-            placeSelected == (int)mode.blueSpike){
+        if(placeSelected == mode.block ||
+            placeSelected == mode.platform ||
+            placeSelected == mode.spike ||
+            placeSelected == mode.tempPlat ||
+            placeSelected == mode.twoStateBlock ||
+            placeSelected == mode.twoStateBlock ||
+            placeSelected == mode.twoStateSpike ||
+            placeSelected == mode.twoStateSpike){
                 return true;
         } else {
             return false;
@@ -553,35 +642,35 @@ public class editorController : MonoBehaviour
         } else {
             tileCursor.gameObject.SetActive(true);
 
-            if(placingOne() || placeSelected == (int)mode.erase){
+            if(placingOne() || toolSelected == tool.erase){
                 tileCursor.transform.GetChild(0).gameObject.SetActive(true);
                 tileCursor.transform.GetChild(1).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(2).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(3).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(4).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(5).gameObject.SetActive(false);
-            }else if (placeSelected == (int)mode.spawn) {
+            }else if (placeSelected == mode.spawn) {
                 tileCursor.transform.GetChild(0).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(1).gameObject.SetActive(true);
                 tileCursor.transform.GetChild(2).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(3).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(4).gameObject.SetActive(true);
                 tileCursor.transform.GetChild(5).gameObject.SetActive(false);
-            }else if (placeSelected == (int)mode.button) {
+            }else if (placeSelected == mode.button) {
                 tileCursor.transform.GetChild(0).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(1).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(2).gameObject.SetActive(true);
                 tileCursor.transform.GetChild(3).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(4).gameObject.SetActive(true);
                 tileCursor.transform.GetChild(5).gameObject.SetActive(false);
-            }else if (placeSelected == (int)mode.door) {
+            }else if (placeSelected == mode.door) {
                 tileCursor.transform.GetChild(0).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(1).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(2).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(3).gameObject.SetActive(true);
                 tileCursor.transform.GetChild(4).gameObject.SetActive(true);
                 tileCursor.transform.GetChild(5).gameObject.SetActive(false);
-            }else if (placeSelected == (int)mode.twoStateButton || placeSelected == (int)mode.twoStateLever) {
+            }else if (placeSelected == mode.twoStateButton || placeSelected == mode.twoStateLever) {
                 tileCursor.transform.GetChild(0).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(1).gameObject.SetActive(false);
                 tileCursor.transform.GetChild(2).gameObject.SetActive(false);
@@ -590,7 +679,7 @@ public class editorController : MonoBehaviour
                 tileCursor.transform.GetChild(5).gameObject.SetActive(true);
             }
 
-            if(placeSelected != (int)mode.erase){
+            if(toolSelected != tool.erase){
                 tileCursor.GetComponent<SpriteRenderer>().sprite = cursorPics[1];
                 tileCursor.GetComponent<SpriteRenderer>().color = cursorColors[1];
             } else {
@@ -598,11 +687,11 @@ public class editorController : MonoBehaviour
                 tileCursor.GetComponent<SpriteRenderer>().color = cursorColors[0];
             }
 
-            if(currentLvl.checkTile(mousePos[0], mousePos[1]) && placingOne() || !currentLvl.checkTile(mousePos[0], mousePos[1]) && placeSelected == (int)mode.erase){
+            if(currentLvl.checkTile(mousePos[0], mousePos[1]) && placingOne() || !currentLvl.checkTile(mousePos[0], mousePos[1]) && toolSelected == tool.erase){
                 tileCursor.transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[0];
-            } else if(placingOne() || placeSelected == (int)mode.erase){
+            } else if(placingOne() || toolSelected == tool.erase){
                 tileCursor.transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().color = cursorColors[1];
-            } else if(new List<int> {(int)mode.spawn, (int)mode.button, (int)mode.door, (int)mode.twoStateButton, (int)mode.twoStateLever}.Contains(placeSelected)){
+            } else if(new List<mode> {mode.spawn, mode.button, mode.door, mode.twoStateButton, mode.twoStateLever}.Contains(placeSelected)){
                 //Correctly colors the borders for placing spawn, button, or door
                 for (int x = -1; x <= 1; x++){
                     try {
@@ -616,7 +705,7 @@ public class editorController : MonoBehaviour
                     }
                 }
 
-                if(placeSelected == (int)mode.spawn){
+                if(placeSelected == mode.spawn){
                     for (int x = -1; x <= 1; x++){
                         for (int y = 0; y <= 2; y++){
                             try {
@@ -630,7 +719,7 @@ public class editorController : MonoBehaviour
                             }
                         }
                     }
-                } else if(placeSelected == (int)mode.button){
+                } else if(placeSelected == mode.button){
                     for (int x = -1; x <= 1; x++){
                         for (int y = 0; y <= 0; y++){
                             try {
@@ -644,7 +733,7 @@ public class editorController : MonoBehaviour
                             }
                         }
                     }
-                } else if(placeSelected == (int)mode.door){
+                } else if(placeSelected == mode.door){
                     for (int x = -1; x <= 1; x++){
                         for (int y = 0; y <= 3; y++){
                             try {
@@ -658,7 +747,7 @@ public class editorController : MonoBehaviour
                             }
                         }
                     }
-                } else if (placeSelected == (int)mode.twoStateButton || placeSelected == (int)mode.twoStateLever){
+                } else if (placeSelected == mode.twoStateButton || placeSelected == mode.twoStateLever){
                     for (int y = 0; y <= 1; y++){
                         try {
                             if (!currentLvl.checkTile(mousePos[0], y + mousePos[1])){
@@ -679,15 +768,15 @@ public class editorController : MonoBehaviour
         }
 
         if(leftClick.IsPressed() && !isMouseOverUI()){
-            if (placeMode == (int)mode.single){
+            if (placeMode == mode.single){
                 if(placingOne() && tileCursor.activeSelf){
                     Place(mousePos[0], mousePos[1], true);
                     reloadBlocks();
-                } else if(placeSelected == (int)mode.erase){
+                } else if(toolSelected == tool.erase){
                     erase(mousePos[0], mousePos[1]);
                     reloadBlocks();
                 }
-            } else if (placeMode == (int)mode.fill){
+            } else if (placeMode == mode.fill){
                 if(fillX < 0){
                     fillX = mousePos[0];
                     fillY = mousePos[1];
@@ -700,7 +789,7 @@ public class editorController : MonoBehaviour
                 for (int x = Mathf.Min(fillX, mousePos[0]); x <= Mathf.Max(fillX, mousePos[0]); x++){
                     for (int y = Mathf.Min(fillY, mousePos[1]); y <= Mathf.Max(fillY, mousePos[1]); y++){
                         GameObject newBorder = Instantiate(borderPrefab, new Vector3(x, y, 0), new Quaternion(), borderDaddy);
-                        if(currentLvl.checkTile(x, y) && placeSelected != (int)mode.erase || !currentLvl.checkTile(x, y) && placeSelected == (int)mode.erase){
+                        if(currentLvl.checkTile(x, y) && toolSelected != tool.erase || !currentLvl.checkTile(x, y) && toolSelected == tool.erase){
                             newBorder.GetComponent<SpriteRenderer>().color = cursorColors[0];
                         } else {
                             newBorder.GetComponent<SpriteRenderer>().color = cursorColors[1];
@@ -896,22 +985,38 @@ public class editorController : MonoBehaviour
         }
         
         GameObject newBlock = Instantiate(tilePrefab, new Vector3 (x, y, 0), new Quaternion());
+        newBlock.AddComponent<spriteDropShadow>();
 
-        if(placeSelected == (int)mode.block){
+        if (placeSelected == (int)mode.block)
+        {
             placeBlock(x, y, newBlock, playerPlaced);
-        } else if (placeSelected == (int)mode.platform){
+        }
+        else if (placeSelected == mode.platform)
+        {
             placePlatform(x, y, newBlock, playerPlaced);
-        } else if (placeSelected == (int)mode.obstacle){
+        }
+        else if (placeSelected == mode.spike)
+        {
             placeDeath(x, y, newBlock, playerPlaced);
-        } else if (placeSelected == (int)mode.tempPlat){
+        }
+        else if (placeSelected == mode.tempPlat)
+        {
             placeTempPlat(x, y, newBlock, playerPlaced);
-        } else if (placeSelected == (int)mode.blueBlock){
+        }
+        else if (placeSelected == mode.blueBlock)
+        {
             placeTwoStateBlue(x, y, newBlock, playerPlaced);
-        } else if (placeSelected == (int)mode.redBlock){
+        }
+        else if (placeSelected == mode.redBlock)
+        {
             placeTwoStateRed(x, y, newBlock, playerPlaced);
-        } else if (placeSelected == (int)mode.blueSpike){
+        }
+        else if (placeSelected == mode.blueSpike)
+        {
             placeBlueDeath(x, y, newBlock, playerPlaced);
-        } else if (placeSelected == (int)mode.redSpike){
+        }
+        else if (placeSelected == mode.redSpike)
+        {
             placeRedDeath(x, y, newBlock, playerPlaced);
         }
 
@@ -954,7 +1059,7 @@ public class editorController : MonoBehaviour
     void placeDeath(int x, int y, GameObject newObstacle, bool playerPlaced){
         coordinate2D newCoord = new coordinate2D (x, y);
         if(playerPlaced){
-            currentLvl.blocks.Add(newCoord, new block (blockType.obstacle, newCoord, 0, 0, false));
+            currentLvl.blocks.Add(newCoord, new block (blockType.spike, newCoord, 0, 0, false));
         }
 
         newObstacle.GetComponent<SpriteRenderer>().sprite = this.GetComponent<w1Spikes>().general;
@@ -1136,100 +1241,145 @@ public class editorController : MonoBehaviour
             if(block.Value.tags == null){
                 block.Value.tags = new Dictionary<string, string>();
             }
-            placeSelected = (int)mode.block;
-            if(block.Value.type == blockType.block){
+            placeSelected = mode.block;
+            if (block.Value.type == blockType.block)
+            {
                 Place(block.Value.placePos.x, block.Value.placePos.y, false);
-            } else
-            if(block.Value.type == blockType.spawn && block.Value.coreTile){
+            }
+            else
+            if (block.Value.type == blockType.spawn && block.Value.coreTile)
+            {
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(otherObjects[0], new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion());
-            } else
-            if(block.Value.type == blockType.button && block.Value.coreTile){
+                placedBlocks[block.Value.placePos.x, block.Value.placePos.y].AddComponent<spriteDropShadow>();
+            }
+            else
+            if (block.Value.type == blockType.button && block.Value.coreTile)
+            {
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(otherObjects[1], new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion());
-            } else
-            if(block.Value.type == blockType.door && block.Value.coreTile){
+                placedBlocks[block.Value.placePos.x, block.Value.placePos.y].AddComponent<spriteDropShadow>();
+            }
+            else
+            if (block.Value.type == blockType.door && block.Value.coreTile)
+            {
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(otherObjects[2], new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion());
-            } else
-            if(block.Value.type == blockType.platform){
-                placeSelected = (int)mode.platform;
+                placedBlocks[block.Value.placePos.x, block.Value.placePos.y].AddComponent<spriteDropShadow>().children.Add(1);
+            }
+            else
+            if (block.Value.type == blockType.platform)
+            {
+                placeSelected = mode.platform;
                 Place(block.Value.placePos.x, block.Value.placePos.y, false);
-            } else
-            if(block.Value.type == blockType.obstacle){
-                placeSelected = (int)mode.obstacle;
+            }
+            else
+            if (block.Value.type == blockType.spike)
+            {
+                placeSelected = mode.spike;
                 Place(block.Value.placePos.x, block.Value.placePos.y, false);
-            } else
-            if(block.Value.type == blockType.tempPlat){
-                placeSelected = (int)mode.tempPlat;
+            }
+            else
+            if (block.Value.type == blockType.tempPlat)
+            {
+                placeSelected = mode.tempPlat;
                 Place(block.Value.placePos.x, block.Value.placePos.y, false);
-            } else
-            if(block.Value.type == blockType.blueBlock){
-                placeSelected = (int)mode.blueBlock;
+            }
+            else
+            if (block.Value.type == blockType.blueBlock)
+            {
+                placeSelected = mode.blueBlock;
                 Place(block.Value.placePos.x, block.Value.placePos.y, false);
-            } else
-            if(block.Value.type == blockType.redBlock){
-                placeSelected = (int)mode.redBlock;
+            }
+            else
+            if (block.Value.type == blockType.redBlock)
+            {
+                placeSelected = mode.redBlock;
                 Place(block.Value.placePos.x, block.Value.placePos.y, false);
-            } else
-            if(block.Value.type == blockType.blueSpike){
-                placeSelected = (int)mode.blueSpike;
+            }
+            else
+            if (block.Value.type == blockType.blueSpike)
+            {
+                placeSelected = mode.blueSpike;
                 Place(block.Value.placePos.x, block.Value.placePos.y, false);
-            } else
-            if(block.Value.type == blockType.redSpike){
-                placeSelected = (int)mode.redSpike;
+            }
+            else
+            if (block.Value.type == blockType.redSpike)
+            {
+                placeSelected = mode.redSpike;
                 Place(block.Value.placePos.x, block.Value.placePos.y, false);
-            } else
-            if(block.Value.type == blockType.twoStateButton && block.Value.coreTile){
+            }
+            else
+            if (block.Value.type == blockType.twoStateButton && block.Value.coreTile)
+            {
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(otherObjects[3], new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion());
-            } else
-            if(block.Value.type == blockType.twoStateLever && block.Value.coreTile){
+                placedBlocks[block.Value.placePos.x, block.Value.placePos.y].AddComponent<spriteDropShadow>();
+            }
+            else
+            if (block.Value.type == blockType.twoStateLever && block.Value.coreTile)
+            {
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(otherObjects[4], new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion());
+                placedBlocks[block.Value.placePos.x, block.Value.placePos.y].AddComponent<spriteDropShadow>();
             }
         }
         loadingLevel = false;
 
         gridReload();
-        placeSelected = (int)mode.block;
+        placeSelected = mode.block;
         //log.text = "Successfully loaded " + path;
     }
 
-    public void selectTool(int select){
-        placeSelected = select;
+    public void selectTool(blockEditor select){
+        Enum.TryParse(select.name, out mode result);
+        placeSelected = result;
+        recentInts.Insert(0, (mode)result);
+        recentRefresh();
 
-        if(select != (int)mode.obstacle){
+        if (result != mode.spike)
+        {
             rotate = 0;
         }
 
-        if (select == (int)mode.spawn || select == (int)mode.button || select == (int)mode.door || select == (int)mode.twoStateButton || select == (int)mode.twoStateLever){
+        singleFill.interactable = select.canFill;
+        if (!select.canFill)
+        {
             singleFill.isOn = false;
-            singleFill.interactable = false;
-            placeMode = (int)mode.single;
-        } else {
-            singleFill.interactable = true;
-            if(singleFill.isOn){
-                placeMode = (int)mode.fill;
-            } else {
-                placeMode = (int)mode.single;
+            placeMode = mode.single;
+        }
+        else
+        {
+            if (singleFill.isOn)
+            {
+                placeMode = mode.fill;
+            }
+            else
+            {
+                placeMode = mode.single;
             }
         }
-        if(select == (int)mode.redBlock){
-            blueRed.interactable = true;
-            blueRed.isOn = redSelect;
-            if(redSelect){
-                placeSelected = (int)mode.redBlock;
-            } else {
-                placeSelected = (int)mode.blueBlock;
+
+        blueRed.interactable = select.isTwoState;
+        blueRed.isOn = redSelect;
+        if (result == mode.twoStateBlock)
+        {
+            if (redSelect)
+            {
+                placeSelected = mode.redBlock;
             }
-        } else {
-            if(select == (int)mode.redSpike){
-                blueRed.interactable = true;
-                blueRed.isOn = redSelect;
-            if(redSelect){
-                placeSelected = (int)mode.redSpike;
-            } else {
-                placeSelected = (int)mode.blueSpike;
+            else
+            {
+                placeSelected = mode.blueBlock;
             }
-            } else {
-                blueRed.interactable = false;
-                blueRed.isOn = redSelect;
+        }
+        else
+        {
+            if (result == mode.twoStateSpike)
+            {
+                if (redSelect)
+                {
+                    placeSelected = mode.redSpike;
+                }
+                else
+                {
+                    placeSelected = mode.blueSpike;
+                }
             }
         }
 
@@ -1244,17 +1394,26 @@ public class editorController : MonoBehaviour
         button.gameObject.GetComponent<Image>().sprite = blockButton[1];
     }
 
-    public void selectPlaceMethod(Toggle toggle){
-        if(toggle.isOn){
-            placeMode = (int)mode.fill;
-        } else {
-            placeMode = (int)mode.single;
+    public void drawErase(int i)
+    {
+        toolSelected = (tool)i;
+    }
+
+    public void selectPlaceMethod(Toggle toggle)
+    {
+        if (toggle.isOn)
+        {
+            placeMode = mode.fill;
+        }
+        else
+        {
+            placeMode = mode.single;
         }
     }
 
     //Reloads the grid to match dimensions
     void gridReload(){
-        //Deletes past grid
+        /*//Deletes past grid
         for(int i = 0; i < gridDaddy.childCount; i++){
             Destroy(gridDaddy.GetChild(i).gameObject);
         }
@@ -1267,10 +1426,13 @@ public class editorController : MonoBehaviour
                 newTile.GetComponent<SpriteRenderer>().sortingOrder = 1;
                 newTile.gameObject.layer = 5;
             }
-        }
+        }*/
+        
 
-        //Creates border around entire grid using old blocks
-        foreach(Transform child in blockBorderDaddy){
+
+        //Creates border around level
+        foreach (Transform child in blockBorderDaddy)
+        {
             GameObject.Destroy(child.gameObject);
         }
             //Places all the blocks bordering the grid
@@ -1292,9 +1454,9 @@ public class editorController : MonoBehaviour
                 placeBorderBlock(8, new Vector3 (i, 0, 0));
             }
 
-            //GameObject newBackground = Instantiate(Resources.Load<GameObject>("background"), blockBorderDaddy);
-            //newBackground.transform.localScale = new Vector2 (size[0] * 30, size[1] * 30);
-            //newBackground.transform.position = new Vector3 (size[0] / 2 - 0.5f, size[1] / 2 - 0.5f, 0);
+            GameObject newBackground = Instantiate(Resources.Load<GameObject>("background"), blockBorderDaddy);
+            newBackground.GetComponent<SpriteRenderer>().size = new Vector2(size[0], size[1]);
+            newBackground.transform.localPosition = new Vector3 (size[0] / 2 - 0.5f, (size[1] / 4f) - 0.5f, 0);
 
             //Places blocks outside the border
             placeBorderVoid(9, new Vector3(-10, size[1] / 2, 0), 18, size[1] + 26);
@@ -1321,10 +1483,12 @@ public class editorController : MonoBehaviour
     void placeBorderVoid(int block, Vector3 newPos, float width, float height){
         Transform newBorderBlock = Instantiate(tilePrefab, newPos, new Quaternion(), blockBorderDaddy).transform;
         newBorderBlock.gameObject.GetComponent<SpriteRenderer>().sprite = borderBlocks[block];
+        newBorderBlock.localScale = new Vector3 (1 / 0.444444f, 1 / 0.444444f, 1);
+        newBorderBlock.gameObject.GetComponent<SpriteRenderer>().drawMode = SpriteDrawMode.Tiled;
         newBorderBlock.gameObject.GetComponent<SpriteRenderer>().color = new Color (0.65f, 0.65f, 0.65f);
         newBorderBlock.gameObject.GetComponent<SpriteRenderer>().sortingOrder = -2;
         newBorderBlock.gameObject.GetComponent<SpriteRenderer>().material = litMat;
-        newBorderBlock.localScale = new Vector3(width, height, 1);
+        newBorderBlock.gameObject.GetComponent<SpriteRenderer>().size = new Vector2(width, height);
     }
 
     int checkTileOccupancy(int x, int y){
@@ -1510,7 +1674,7 @@ public class editorController : MonoBehaviour
                         sr.sprite = oneWays.Middle[4];
                     }
                 }
-            } else if(currentLvl.getTile(x, y).type == blockType.obstacle){
+            } else if(currentLvl.getTile(x, y).type == blockType.spike){
                 SpriteRenderer sr = placedBlocks[x, y].GetComponent<SpriteRenderer>();
                 sr.color = new Color(1, .88f, .88f);
                 if(checkTileOccupancy(x, y - 1) == 0 && checkTileOccupancy(x, y + 1) != 0){
@@ -1531,24 +1695,33 @@ public class editorController : MonoBehaviour
     }
 }
 
-public enum mode{
+public enum mode
+{
     block = 0,
-    erase = 1,
-    spawn = 2,
-    button = 3,
-    door = 4,
-    obstacle = 5,
-    platform = 6,
-    tempPlat = 7,
-    redBlock = 8,
-    blueBlock = 9,
-    twoStateButton = 10,
-    twoStateLever = 11,
-    redSpike = 12,
-    blueSpike = 13,
+    platform = 1,
+    spike = 2,
+    tempPlat = 3,
+    spawn = 4,
+    door = 5,
+    button = 6,
+    twoStateBlock = 7,
+    twoStateSpike = 8,
+    twoStateButton = 9,
+    twoStateLever = 10,
+
+    redBlock = 20,
+    blueBlock = 21,
+    redSpike = 22,
+    blueSpike = 23,
 
     single = 0,
     fill = 1
+}
+
+public enum tool
+{
+    draw = 0,
+    erase = 1
 }
 
 namespace Common

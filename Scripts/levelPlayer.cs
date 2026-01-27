@@ -12,6 +12,7 @@ using UnityEngine.SceneManagement;
 using Unity.VisualScripting;
 using UnityEngine.UI;
 using Unity.Collections;
+using UnityEngine.EventSystems;
 
 public class levelPlayer : MonoBehaviour
 {
@@ -255,7 +256,7 @@ public class levelPlayer : MonoBehaviour
             if(block.Value.type == blockType.platform){
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.platform, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), platformDaddy);
             }
-            if(block.Value.type == blockType.obstacle){
+            if(block.Value.type == blockType.spike){
                 placedBlocks[block.Value.placePos.x, block.Value.placePos.y] = Instantiate(playerPrefabs.spike, new Vector3(block.Value.placePos.x, block.Value.placePos.y, 0), new Quaternion(), spikeDaddy);
             }
             if(block.Value.type == blockType.tempPlat){
@@ -540,7 +541,7 @@ public class levelPlayer : MonoBehaviour
                         sr.sprite = oneWays.Middle[4];
                     }
                 }
-            } else if(currentLvl.getTile(x, y).type == blockType.obstacle){
+            } else if(currentLvl.getTile(x, y).type == blockType.spike){
                 SpriteRenderer sr = placedBlocks[x, y].GetComponent<SpriteRenderer>();
                 sr.color = new Color(1, .88f, .88f);
                 if(checkTileOccupancy(x, y - 1) == 0 && checkTileOccupancy(x, y + 1) != 0){

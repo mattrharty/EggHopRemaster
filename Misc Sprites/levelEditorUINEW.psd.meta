@@ -1,0 +1,903 @@
+fileFormatVersion: 2
+guid: 1cd3f07e7de206d419e487f399439261
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 4895184144721014596
+    second: levelEditorUINEW_0
+  - first:
+      213: -1917835162605414827
+    second: levelEditorUINEW_1
+  - first:
+      213: -6722471528787066068
+    second: levelEditorUINEW_2
+  - first:
+      213: 124571498502579634
+    second: levelEditorUINEW_3
+  - first:
+      213: 4883251741989504792
+    second: levelEditorUINEW_4
+  - first:
+      213: 5829512015454998528
+    second: levelEditorUINEW_5
+  - first:
+      213: 3147125267939389996
+    second: levelEditorUINEW_6
+  - first:
+      213: -2029525368176561174
+    second: levelEditorUINEW_7
+  - first:
+      213: 1326902711496182498
+    second: levelEditorUINEW_8
+  - first:
+      213: 6997975481990327336
+    second: levelEditorUINEW_9
+  - first:
+      213: -7296818819482515966
+    second: levelEditorUINEW_10
+  - first:
+      213: -6817611299403296644
+    second: levelEditorUINEW_11
+  - first:
+      213: -5256234765148386620
+    second: levelEditorUINEW_12
+  - first:
+      213: -1357133087058605529
+    second: levelEditorUINEW_13
+  - first:
+      213: -1974790685148136667
+    second: levelEditorUINEW_14
+  - first:
+      213: 8004910119927192038
+    second: levelEditorUINEW_15
+  - first:
+      213: 2601387343599678991
+    second: levelEditorUINEW_16
+  - first:
+      213: 8991177962388987073
+    second: levelEditorUINEW_17
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 1
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Win64
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WindowsStoreApps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: levelEditorUINEW_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 318
+        width: 67
+        height: 162
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44f68383b003fe340800000000000000
+      internalID: 4895184144721014596
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_1
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 312
+        width: 156
+        height: 42
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 556962ba41b7265e0800000000000000
+      internalID: -1917835162605414827
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_2
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 279
+        width: 36
+        height: 36
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2348f103cbf4b2a0800000000000000
+      internalID: -6722471528787066068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_3
+      rect:
+        serializedVersion: 2
+        x: 199
+        y: 418
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 1, z: 1, w: 2}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b5626d2e119ab100800000000000000
+      internalID: 124571498502579634
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_4
+      rect:
+        serializedVersion: 2
+        x: 86
+        y: 330
+        width: 45
+        height: 33
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8178716369bc4c340800000000000000
+      internalID: 4883251741989504792
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_5
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 150
+        width: 69
+        height: 69
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 000111fba4696e050800000000000000
+      internalID: 5829512015454998528
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_6
+      rect:
+        serializedVersion: 2
+        x: 99
+        y: 399
+        width: 33
+        height: 39
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c22fe2bc1c5dcab20800000000000000
+      internalID: 3147125267939389996
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_7
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 279
+        width: 36
+        height: 36
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae331373e6da5d3e0800000000000000
+      internalID: -2029525368176561174
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_8
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 408
+        width: 24
+        height: 27
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ea8b326cfa1a6210800000000000000
+      internalID: 1326902711496182498
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_9
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 438
+        width: 221
+        height: 42
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82c2deebf9dcd1160800000000000000
+      internalID: 6997975481990327336
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_10
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 438
+        width: 156
+        height: 42
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2060c52a1fd7cba90800000000000000
+      internalID: -7296818819482515966
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_11
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 396
+        width: 156
+        height: 42
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c70906af4aaf261a0800000000000000
+      internalID: -6817611299403296644
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_12
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 354
+        width: 156
+        height: 42
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ca854f645a1e07b0800000000000000
+      internalID: -5256234765148386620
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_15
+      rect:
+        serializedVersion: 2
+        x: 49
+        y: 82
+        width: 99
+        height: 57
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e9903d9757271f60800000000000000
+      internalID: 8004910119927192038
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_16
+      rect:
+        serializedVersion: 2
+        x: 174
+        y: 84
+        width: 96
+        height: 51
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f06b47a910cf91420800000000000000
+      internalID: 2601387343599678991
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_17
+      rect:
+        serializedVersion: 2
+        x: 49
+        y: 24
+        width: 98
+        height: 57
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1cc148038b417cc70800000000000000
+      internalID: 8991177962388987073
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_13
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 243
+        width: 36
+        height: 36
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 34a44219f3ae4a048bde6fd6bd1b3f32
+      internalID: -1357133087058605529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_14
+      rect:
+        serializedVersion: 2
+        x: 126
+        y: 222
+        width: 84
+        height: 84
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f875c85fa59beca418a7f8dfe5295c03
+      internalID: -1974790685148136667
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_18
+      rect:
+        serializedVersion: 2
+        x: 170
+        y: 367
+        width: 16
+        height: 20
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 4, y: 4, z: 0, w: 4}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 60cfdf623a4bc8d4dba4715de7deab47
+      internalID: 1577009718
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_19
+      rect:
+        serializedVersion: 2
+        x: 187
+        y: 367
+        width: 16
+        height: 20
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 4, y: 4, z: 0, w: 4}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 45feef69a5b883742b913e6f0ae6cb26
+      internalID: -396810492
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_20
+      rect:
+        serializedVersion: 2
+        x: 170
+        y: 388
+        width: 16
+        height: 20
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 4, y: 4, z: 0, w: 4}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8d2b7fb718e708e4a9a1ca9c7ce62af7
+      internalID: 864196212
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_21
+      rect:
+        serializedVersion: 2
+        x: 187
+        y: 388
+        width: 16
+        height: 20
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 4, y: 4, z: 0, w: 4}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 185f8b519723b244287545834ef6ba89
+      internalID: 262095050
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_22
+      rect:
+        serializedVersion: 2
+        x: 247
+        y: 397
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b9c5e8ad400c9954595c8f964f8160b5
+      internalID: -1041712394
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_23
+      rect:
+        serializedVersion: 2
+        x: 265
+        y: 397
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5345eaec03607944abfe5f5740083cb9
+      internalID: -1827505329
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_24
+      rect:
+        serializedVersion: 2
+        x: 247
+        y: 415
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 683547df2d0118d4099e88957e9bf07e
+      internalID: 1587060523
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_25
+      rect:
+        serializedVersion: 2
+        x: 265
+        y: 415
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0a9e784d3f912d0499cab55124140619
+      internalID: -238106220
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_26
+      rect:
+        serializedVersion: 2
+        x: 153
+        y: 338
+        width: 54
+        height: 9
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8dfb41e95d5cd2a48942de4e80ac885a
+      internalID: 539966613
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_27
+      rect:
+        serializedVersion: 2
+        x: 90
+        y: 369
+        width: 8
+        height: 24
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6561a9cb11f0a7c40b3ad3433fd952b3
+      internalID: 521600484
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: levelEditorUINEW_28
+      rect:
+        serializedVersion: 2
+        x: 103
+        y: 370
+        width: 12
+        height: 23
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3b319b12347cc0a4c85f01063d6ec5a1
+      internalID: -595816581
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 9fe836ac0b892bd41b6ab5db2b402456
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      levelEditorUINEW_0: 4895184144721014596
+      levelEditorUINEW_1: -1917835162605414827
+      levelEditorUINEW_10: -7296818819482515966
+      levelEditorUINEW_11: -6817611299403296644
+      levelEditorUINEW_12: -5256234765148386620
+      levelEditorUINEW_13: -1357133087058605529
+      levelEditorUINEW_14: -1974790685148136667
+      levelEditorUINEW_15: 8004910119927192038
+      levelEditorUINEW_16: 2601387343599678991
+      levelEditorUINEW_17: 8991177962388987073
+      levelEditorUINEW_18: 1577009718
+      levelEditorUINEW_19: -396810492
+      levelEditorUINEW_2: -6722471528787066068
+      levelEditorUINEW_20: 864196212
+      levelEditorUINEW_21: 262095050
+      levelEditorUINEW_22: -1041712394
+      levelEditorUINEW_23: -1827505329
+      levelEditorUINEW_24: 1587060523
+      levelEditorUINEW_25: -238106220
+      levelEditorUINEW_26: 539966613
+      levelEditorUINEW_27: 521600484
+      levelEditorUINEW_28: -595816581
+      levelEditorUINEW_3: 124571498502579634
+      levelEditorUINEW_4: 4883251741989504792
+      levelEditorUINEW_5: 5829512015454998528
+      levelEditorUINEW_6: 3147125267939389996
+      levelEditorUINEW_7: -2029525368176561174
+      levelEditorUINEW_8: 1326902711496182498
+      levelEditorUINEW_9: 6997975481990327336
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

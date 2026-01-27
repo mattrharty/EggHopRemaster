@@ -10,16 +10,41 @@ using Unity.VisualScripting;
 using UnityEngine;
 
 [Serializable]
+public class blockEditor
+{
+    public string name;
+    public int width;
+    public int height;
+    public bool canFill;
+    public bool isTwoState;
+    public List<string> canReplace;
+    public List<Sprite> primaryTex;
+    public List<Sprite> secondaryTex;
+
+    public blockEditor(string _name, int _width, int _height, bool _canFill, bool _isTwoState, List<string> _canReplace, List<Sprite> _primaryTex, List<Sprite> _secondaryTex)
+    {
+        name = _name;
+        width = _width;
+        height = _height;
+        canFill = _canFill;
+        isTwoState = _isTwoState;
+        canReplace = _canReplace;
+        primaryTex = _primaryTex;
+        secondaryTex = _secondaryTex;
+    }
+}
+
+[Serializable]
 public class block
 {
-    public blockType type;
-    public coordinate2D placePos;
-    public double rot;
-    public int blockVer;
-    public int activeState;
-    public bool coreTile;
-    public string levelName;
-    public Dictionary<string, string> tags;
+    private blockType type;
+    private coordinate2D placePos;
+    private double rot;
+    private int blockVer;
+    private int activeState;
+    private bool coreTile;
+    private string levelName;
+    private Dictionary<string, string> tags;
 
     public block (blockType type, coordinate2D placePos, double rot, int blockVer, bool coreTile){
         this.type = type;
@@ -29,6 +54,38 @@ public class block
         this.coreTile = coreTile;
         tags = new Dictionary<string, string>();
     } 
+
+    public blockType getType() {
+        return type;
+    }
+
+    public coordinate2D getPlacePos() {
+        return placePos;
+    }
+
+    public double getRot() {
+        return rot;
+    }
+
+    public int getBlockVer() {
+        return blockVer;
+    }
+
+    public int getActiveState() {
+        return activeState;
+    }
+
+    public bool getCoreTile() {
+        return coreTile;
+    }
+
+    public string getLevelName() {
+        return levelName;
+    }
+
+    public Dictionary<string, string> getTags() {
+        return tags;
+    }
 
 }
 
@@ -223,7 +280,7 @@ public enum blockType {
     spawn,
     button,
     door,
-    obstacle,
+    spike,
     platform,
     tempPlat,
     twoStateButton,

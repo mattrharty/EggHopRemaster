@@ -37,19 +37,19 @@ public class editorUI : MonoBehaviour
     public void setRed(Animator anim){
         anim.SetBool("isRed", edit.blueRed.isOn);
         edit.redSelect = edit.blueRed.isOn;
-        if(edit.placeSelected == (int)mode.redBlock || edit.placeSelected == (int)mode.blueBlock){
+        if(edit.placeSelected == mode.redBlock || edit.placeSelected == mode.blueBlock){
             if(edit.redSelect){
-                edit.placeSelected = (int)mode.redBlock;
+                edit.placeSelected = mode.redBlock;
             } else {
-                edit.placeSelected = (int)mode.blueBlock;
+                edit.placeSelected = mode.blueBlock;
             }
         }
 
-        if(edit.placeSelected == (int)mode.redSpike || edit.placeSelected == (int)mode.blueSpike){
+        if(edit.placeSelected == mode.redSpike || edit.placeSelected == mode.blueSpike){
             if(edit.redSelect){
-                edit.placeSelected = (int)mode.redSpike;
+                edit.placeSelected = mode.redSpike;
             } else {
-                edit.placeSelected = (int)mode.blueSpike;
+                edit.placeSelected = mode.blueSpike;
             }
         }
     }
@@ -77,23 +77,42 @@ public class editorUI : MonoBehaviour
         ones.sprite = counterSprites[edit.currentLvl.eggCount - Mathf.FloorToInt(edit.currentLvl.eggCount / 10) * 10];
         tens.sprite = counterSprites[Mathf.FloorToInt(edit.currentLvl.eggCount / 10)];
 
-        if(edit.redSelect){
-            blockSelect[8] = blueRedBlocks[0];
-        } else {
-            blockSelect[8] = blueRedBlocks[1];
+        foreach (blockEditor obj in edit.palette)
+        {
+            if (obj.isTwoState)
+            {
+                if (edit.redSelect)
+                {
+                    blockSelect[edit.palette.IndexOf(obj)] = obj.primaryTex[0];
+                }
+                else
+                {
+                    blockSelect[edit.palette.IndexOf(obj)] = obj.primaryTex[1];
+                }
+                //blueRedBlock.sprite = blockSelect[8];
+            }
+        }
+
+        /*if (edit.redSelect)
+        {
+            blockSelect[7] = blueRedBlocks[0];
+        }
+        else
+        {
+            blockSelect[7] = blueRedBlocks[1];
         }
         blueRedBlock.sprite = blockSelect[8];
 
         if(edit.redSelect){
-            blockSelect[12] = blueRedSpikes[0];
+            blockSelect[8] = blueRedSpikes[0];
         } else {
-            blockSelect[12] = blueRedSpikes[1];
+            blockSelect[8] = blueRedSpikes[1];
         }
-        blueRedSpike.sprite = blockSelect[12];
+        blueRedSpike.sprite = blockSelect[12];*/
 
 
-        ribbon.sprite = blockSelect[edit.placeSelected];
-        ribbon.gameObject.transform.localScale = new Vector3 (thumbnailSize[edit.placeSelected].x / 100f, thumbnailSize[edit.placeSelected].y / 100f, 1f);
+        ribbon.sprite = blockSelect[(int)edit.placeSelected];
+        ribbon.gameObject.transform.localScale = new Vector3 (thumbnailSize[(int)edit.placeSelected].x / 100f, thumbnailSize[(int)edit.placeSelected].y / 100f, 1f);
 
         edit.blueRed.transform.GetComponent<Animator>().SetBool("Disabled", !edit.blueRed.interactable);
     }
